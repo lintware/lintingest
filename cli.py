@@ -9,7 +9,7 @@ from pathlib import Path
 
 from agent.config import AgentConfig
 from agent.core import Agent
-from server.mlx_runner import start_server, stop_server
+from server.backend import detect_backend, start_server, stop_server
 
 
 def setup_logging(verbose: bool = False):
@@ -32,25 +32,32 @@ def main():
     parser = argparse.ArgumentParser(description="LintIngest - Local Document Agent")
     sub = parser.add_subparsers(dest="command")
 
+    backend_choices = ["mlx", "llamacpp"]
+    backend_help = "Model backend (default: auto-detect)"
+
     # Index command
     idx = sub.add_parser("index", help="Index a directory")
     idx.add_argument("--target", default=str(Path.home() / "Desktop"), help="Directory to index")
+    idx.add_argument("--backend", choices=backend_choices, default=None, help=backend_help)
     idx.add_argument("--verbose", "-v", action="store_true")
 
     # Query command
     q = sub.add_parser("query", help="Ask a question")
     q.add_argument("question", nargs="+", help="The question to ask")
     q.add_argument("--parallel", "-p", action="store_true", help="Use parallel file reading")
+    q.add_argument("--backend", choices=backend_choices, default=None, help=backend_help)
     q.add_argument("--verbose", "-v", action="store_true")
 
     # Interactive mode
     i = sub.add_parser("interactive", help="Interactive Q&A mode")
     i.add_argument("--target", default=str(Path.home() / "Desktop"), help="Directory to index")
+    i.add_argument("--backend", choices=backend_choices, default=None, help=backend_help)
     i.add_argument("--verbose", "-v", action="store_true")
 
     # Server command
-    s = sub.add_parser("server", help="Start MLX server only")
+    s = sub.add_parser("server", help="Start model server only")
     s.add_argument("--port", type=int, default=8080)
+    s.add_argument("--backend", choices=backend_choices, default=None, help=backend_help)
 
     args = parser.parse_args()
 
@@ -65,8 +72,10 @@ def main():
     if hasattr(args, "target"):
         config.target_dir = Path(args.target)
 
+    backend = getattr(args, "backend", None)
+
     if args.command == "server":
-        proc = start_server(port=args.port, venv_python=sys.executable)
+        proc = start_server(backend=backend, port=args.port, venv_python=sys.executable)
         if proc:
             try:
                 print("Press Ctrl+C to stop")

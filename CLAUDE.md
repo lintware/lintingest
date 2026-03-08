@@ -48,6 +48,21 @@ Target Dir (~/Desktop)
 - **Max tokens per call:** 256 (keep fast, use multiple calls)
 - **Temperature:** 0.3 (factual retrieval, low creativity)
 
+## Backend Support
+
+LintIngest supports two model backends that expose the same OpenAI-compatible API on `localhost:8080`:
+
+| Backend | Platform | Model Format | Runner |
+|---------|----------|-------------|--------|
+| **MLX** | macOS Apple Silicon | `mlx-community/Qwen3.5-0.8B-MLX-8bit` | `server/mlx_runner.py` |
+| **llama.cpp** | Windows / Linux / any | `unsloth/Qwen3.5-0.8B-GGUF` (Q4_K_M) | `server/llamacpp_runner.py` |
+
+- **Auto-detection** (`server/backend.py`): Apple Silicon macOS → MLX, everything else → llama.cpp
+- **Manual override:** `--backend mlx` or `--backend llamacpp` on any CLI command
+- The agent code is backend-agnostic — it only talks to `http://127.0.0.1:8080/v1`
+- llama.cpp requires `llama-server` on PATH (not bundled)
+- GGUF model is auto-downloaded via `huggingface_hub` on first run
+
 ## Security Constraints - MANDATORY
 
 These rules are non-negotiable and must be enforced at every layer:
@@ -63,7 +78,7 @@ These rules are non-negotiable and must be enforced at every layer:
 - No shell command execution beyond read-only operations (ls, cat, file, head)
 - No network access (all processing is local)
 - No git operations on external repos
-- No process spawning beyond the MLX server
+- No process spawning beyond the model server (MLX or llama.cpp)
 - Rate limit: 200 tool calls per session maximum
 
 ## Tool Definitions
@@ -148,8 +163,10 @@ lintingest/
 │   ├── index.json         # File index from indexing pass
 │   ├── notes/             # Agent notes for future queries
 │   └── cache/             # Compacted context cache
-├── server/                 # MLX server management
-│   └── mlx_runner.py      # Start/stop MLX server
+├── server/                 # Model server management
+│   ├── backend.py         # Auto-detect platform, unified start/stop
+│   ├── mlx_runner.py      # Start/stop MLX server (macOS Apple Silicon)
+│   └── llamacpp_runner.py # Start/stop llama.cpp server (Windows/Linux)
 ├── cli.py                  # CLI entry point
 ├── requirements.txt
 └── .venv/                  # Python virtual environment
