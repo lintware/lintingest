@@ -329,24 +329,52 @@ class Agent:
         except (json.JSONDecodeError, TypeError, FileNotFoundError):
             return await self.query(question)
 
+        if not files:
+            return "No files found in the target directory. Try running /index first."
+
+        # Step 2: Build a compact file listing and let the model answer
+        # from the index first — many questions (counts, listings, types)
+        # can be answered without reading file contents
         file_list = "\n".join(
-            f"- {f['name']} ({f.get('type', '?')}, {f.get('size', '?')}b)"
-            for f in files[:50]
+            f"- {f['name']} (type: {f.get('type', '?')}, size: {f.get('size', '?')}b"
+            + (f", preview: {f['preview'][:60]}" if f.get("preview") else "")
+            + ")"
+            for f in files[:80]
         )
-        select_prompt = (
-            f"Given these files:\n{file_list}\n\n"
+        total = len(files)
+
+        index_prompt = (
+            f"The user's directory contains {total} files/folders:\n{file_list}\n\n"
             f"Question: {question}\n\n"
-            f"List up to 8 filenames most likely to contain the answer, one per line. "
-            f"Just the filenames, nothing else."
+            f"If you can answer from this file list, write ANSWER: followed by your answer.\n"
+            f"If you need to read file contents, write NEED_FILES: followed by up to 8 filenames, one per line."
         )
-        selection = await self._llm_call(select_prompt, max_tokens=100)
+        response = await self._llm_call(index_prompt, max_tokens=300)
+
+        # If model can answer from index alone, return directly
+        if "ANSWER:" in response:
+            answer = response.split("ANSWER:", 1)[1].strip()
+            print(f"\nAnswer: {answer}")
+            self.tools.execute("note_store", {
+                "key": f"pquery_{int(time.time())}",
+                "content": f"Q: {question}\nA: {answer}",
+                "category": "query_history",
+            })
+            return answer
+
+        # Step 3: Model needs file contents — extract filenames
+        if "NEED_FILES:" in response:
+            names_text = response.split("NEED_FILES:", 1)[1].strip()
+        else:
+            names_text = response  # best effort
+
         selected_names = [
             line.strip().lstrip("- ").strip()
-            for line in selection.splitlines()
+            for line in names_text.splitlines()
             if line.strip() and not line.strip().startswith("#")
         ]
 
-        # Step 3: Read selected files in parallel batches
+        # Step 4: Read selected files
         file_contents = []
         for name in selected_names[:8]:
             matching = [f for f in files if f["name"] == name or name in f.get("path", "")]
@@ -357,9 +385,10 @@ class Agent:
                     file_contents.append({"path": path, "content": read_result["output"]})
 
         if not file_contents:
+            # No files matched — fall back to agentic loop
             return await self.query(question)
 
-        # Step 4: Parallel LLM extraction
+        # Step 5: Parallel LLM extraction
         print(f"\nSearching {len(file_contents)} files in parallel...")
         findings = await parallel_tool_reads(
             self.config.base_url,
@@ -372,7 +401,7 @@ class Agent:
         if not findings:
             return await self.query(question)
 
-        # Step 5: Synthesize
+        # Step 6: Synthesize
         findings_text = "\n\n".join(
             f"From {f['path']}:\n{f['finding']}" for f in findings
         )
@@ -384,7 +413,6 @@ class Agent:
         answer = await self._llm_call(synth_prompt, max_tokens=self.config.max_answer_tokens)
         print(f"\nAnswer: {answer}")
 
-        # Store note
         self.tools.execute("note_store", {
             "key": f"pquery_{int(time.time())}",
             "content": f"Q: {question}\nA: {answer}\nFiles: {[f['path'] for f in findings]}",
