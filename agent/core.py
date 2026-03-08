@@ -15,21 +15,13 @@ from agent.parallel import parallel_completions, parallel_tool_reads
 
 logger = logging.getLogger("lintingest.core")
 
-SYSTEM_PROMPT = """You are a file search agent. You MUST use tools to find information before answering.
-
-Tools:
+SYSTEM_PROMPT = """You search files and answer questions. You have these tools:
 {tool_descriptions}
 
-IMPORTANT: You MUST call a tool on every turn until you have enough data.
-On your FIRST turn, ALWAYS call read_index to see available files.
+To use a tool, respond with JSON only:
+{{"tool": "tool_name", "args": {{"key": "value"}}}}
 
-Output ONLY a JSON tool call like this:
-{{"tool": "read_index", "args": {{}}}}
-
-Another example:
-{{"tool": "file_read", "args": {{"path": "/path/to/file", "limit": 50}}}}
-
-Only when you have gathered enough information, write ANSWER: followed by your response."""
+When you have enough info, respond with ANSWER: followed by your answer in plain language."""
 
 SUMMARIZE_PROMPT = """Summarize this tool result in 2-3 short sentences, keeping only information relevant to the question.
 Question: {question}
@@ -144,46 +136,49 @@ class Agent:
         tool_descs = self._build_tool_descriptions()
         system = SYSTEM_PROMPT.format(tool_descriptions=tool_descs)
 
-        max_iterations = 8
+        max_iterations = 5
         iteration = 0
         tools_called = []  # Track what we've already called
+        read_index_done = False  # Hard-block re-reads
+        _seen_calls: set[str] = set()  # Track exact call signatures to block duplicates
 
         print(f"\nQuery: {question}")
         print("-" * 40)
+
+        # Step 0: Always read index first — no model decision needed
+        index_result = self.tools.execute("read_index", {})
+        if index_result["success"]:
+            self.compactor.add_result("read_index", index_result["output"])
+            read_index_done = True
+            tools_called.append("read_index")
+            print(f"  [0] read_index (auto)")
+        else:
+            # Index missing — run indexing pass, then read
+            await self.index()
+            index_result = self.tools.execute("read_index", {})
+            if index_result["success"]:
+                self.compactor.add_result("read_index", index_result["output"])
+                read_index_done = True
+                tools_called.append("read_index")
+                print(f"  [0] read_index (auto, after re-index)")
+
+        stall_count = 0  # Track consecutive blocked/duplicate calls
 
         while iteration < max_iterations:
             iteration += 1
             context = self.compactor.get_context()
 
-            if context:
-                # Tell model what NOT to do again
-                already = ", ".join(set(tools_called))
-                hint = ""
-                if "read_index" in tools_called and not any(
-                    t in tools_called for t in ("file_read", "glob_search", "content_search")
-                ):
-                    hint = (
-                        "\nYou already have the file list. Now use file_read, "
-                        "glob_search, or content_search to find relevant content. "
-                        "Do NOT call read_index again."
-                    )
-                elif len(tools_called) >= 3:
-                    hint = "\nYou have enough data. Write ANSWER: with your response."
+            hint = ""
+            if len(tools_called) >= 4:
+                hint = "\nYou have enough data. Write ANSWER: followed by your response."
 
-                prompt = (
-                    f"{system}\n\n"
-                    f"Context from previous steps:\n{context}\n\n"
-                    f"Tools already called: {already}{hint}\n\n"
-                    f"User question: {question}\n\n"
-                    f"Call a NEW tool or write ANSWER:"
-                )
-            else:
-                prompt = (
-                    f"{system}\n\n"
-                    f"User question: {question}\n\n"
-                    f'You have not searched yet. Call read_index now.\n'
-                    f'Respond with: {{"tool": "read_index", "args": {{}}}}'
-                )
+            prompt = (
+                f"{system}\n\n"
+                f"Findings so far:\n{context}\n\n"
+                f"User question: {question}\n"
+                f"{hint}\n"
+                f"Call a tool or write ANSWER:"
+            )
 
             response = await self._llm_call(prompt)
             logger.info(f"Iteration {iteration}: {response[:200]}")
@@ -192,7 +187,6 @@ class Agent:
             if "ANSWER:" in response:
                 answer = response.split("ANSWER:", 1)[1].strip()
                 print(f"\nAnswer: {answer}")
-                # Store as note for future reference
                 self.tools.execute("note_store", {
                     "key": f"query_{int(time.time())}",
                     "content": f"Q: {question}\nA: {answer}",
@@ -203,21 +197,40 @@ class Agent:
             # Try to parse tool call
             tool_call = self._parse_tool_call(response)
             if not tool_call:
-                # Model didn't format correctly - treat as answer
+                # Model didn't format correctly — treat as answer
                 print(f"\nAnswer: {response}")
                 return response
 
             tool_name, args = tool_call
 
-            # Prevent infinite loops on same tool
-            if tool_name in tools_called and tool_name == "read_index":
-                # Force progression
+            # Hard-block read_index after first call — don't waste an iteration
+            if tool_name == "read_index" and read_index_done:
+                stall_count += 1
+                iteration -= 1  # Don't count this as a real iteration
+                if stall_count >= 2:
+                    # Model is stuck — force synthesis
+                    break
                 self.compactor.add_result(
                     "system",
-                    "You already called read_index. Use file_read, glob_search, or content_search next.",
+                    "You already have the file index. Use file_read, glob_search, or content_search.",
                 )
                 continue
 
+            # Block exact duplicate tool calls (same name + same args)
+            call_key = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
+            if call_key in _seen_calls:
+                stall_count += 1
+                iteration -= 1
+                if stall_count >= 2:
+                    break
+                self.compactor.add_result(
+                    "system",
+                    f"You already called {tool_name} with those arguments. Try a different tool or write ANSWER:",
+                )
+                continue
+
+            _seen_calls.add(call_key)
+            stall_count = 0  # Reset on successful new call
             tools_called.append(tool_name)
             print(f"  [{iteration}] {tool_name}({json.dumps(args)[:80]})")
 
@@ -254,11 +267,13 @@ class Agent:
                     tool_name, f"ERROR: {result.get('error', 'unknown')}"
                 )
 
-        # If we exhausted iterations, synthesize from what we have
+        # Exhausted iterations — synthesize a final answer
         context = self.compactor.get_context()
         final_prompt = (
-            f"Based on these findings about the user's files:\n{context}\n\n"
-            f"Answer this question concisely: {question}"
+            f"You searched the user's files and found this:\n{context}\n\n"
+            f"Question: {question}\n\n"
+            f"Write a helpful answer in plain language. "
+            f"Mention specific file names. Be concise."
         )
         answer = await self._llm_call(final_prompt, max_tokens=self.config.max_answer_tokens)
         print(f"\nAnswer: {answer}")
