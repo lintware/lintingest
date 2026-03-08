@@ -61,9 +61,15 @@ class Agent:
             resp = await client.post(
                 f"{self.config.base_url}/chat/completions",
                 json=payload,
-                timeout=60.0,
+                timeout=120.0,
             )
+            if resp.status_code != 200:
+                logger.error(f"LLM call failed ({resp.status_code}): {resp.text[:500]}")
+                raise RuntimeError(f"Model server error {resp.status_code}: {resp.text[:200]}")
             data = resp.json()
+            if "choices" not in data:
+                logger.error(f"Unexpected response: {json.dumps(data)[:500]}")
+                raise RuntimeError(f"No choices in response: {json.dumps(data)[:200]}")
             content = data["choices"][0]["message"]["content"]
             if "<think>" in content:
                 parts = content.split("</think>")
@@ -312,19 +318,15 @@ class Agent:
 
     async def parallel_query(self, question: str) -> str:
         """Enhanced query that uses parallel file reading."""
-        # First, run normal query to identify relevant files
         self.compactor.reset()
 
-        # Step 1: Read index
-        index_result = self.tools.execute("read_index", {})
-        if not index_result["success"]:
+        # Step 1: Read index from JSON file directly
+        json_path = self.config.data_dir / "index.json"
+        if not json_path.exists():
             await self.index()
-            index_result = self.tools.execute("read_index", {})
-
-        # Step 2: Ask LLM which files to look at
         try:
-            files = json.loads(index_result["output"])
-        except (json.JSONDecodeError, TypeError):
+            files = json.loads(json_path.read_text())
+        except (json.JSONDecodeError, TypeError, FileNotFoundError):
             return await self.query(question)
 
         file_list = "\n".join(
