@@ -72,6 +72,14 @@ TOOL_SCHEMAS = {
         "type": "object",
         "properties": {},
     },
+    "image_describe": {
+        "type": "object",
+        "properties": {
+            "path": {"type": "string", "description": "Path to image file to describe"},
+            "question": {"type": "string", "description": "What to look for in the image", "default": "Describe this image"},
+        },
+        "required": ["path"],
+    },
 }
 
 
@@ -225,9 +233,10 @@ class ToolExecutor:
         if path.stat().st_size > self.config.max_file_size:
             return f"File too large: {path.stat().st_size} bytes"
 
-        # Handle image files — return metadata instead of binary garbage
+        # Handle image files — return metadata; actual vision analysis happens in core
         if path.suffix.lower() in self.IMAGE_EXTENSIONS:
             return self._read_image_metadata(path)
+
 
         offset = args.get("offset", 0)
         limit = args.get("limit", 50)
@@ -385,3 +394,21 @@ class ToolExecutor:
         xml = self._entries_to_xml(entries)
         xml_path.write_text(xml)
         return xml
+
+    def _tool_image_describe(self, args: dict) -> str:
+        """Validate image path and return a VLM marker for the core loop."""
+        path = self.safe_read_path(args["path"])
+        if not path.is_file():
+            return f"Not a file: {path}"
+        if path.suffix.lower() not in self.IMAGE_EXTENSIONS:
+            return f"Not an image file: {path.name}"
+        if path.stat().st_size > self.config.max_file_size:
+            return f"File too large: {path.stat().st_size} bytes"
+
+        question = args.get("question", "Describe this image in detail")
+        # Return a JSON marker that core.py intercepts to make a VLM call
+        return json.dumps({
+            "__vlm_request__": True,
+            "image_path": str(path),
+            "question": question,
+        })

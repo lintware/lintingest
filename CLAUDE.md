@@ -42,8 +42,8 @@ Target Dir (~/Desktop)
 
 ## Model Configuration
 
-- **Model:** `mlx-community/Qwen3.5-0.8B-MLX-8bit`
-- **Server:** `mlx_lm.server` on `http://127.0.0.1:8080/v1`
+- **Model:** `mlx-community/Qwen3.5-0.8B-MLX-8bit` (vision-language model)
+- **Server:** `mlx_vlm.server` on `http://127.0.0.1:8080/v1`
 - **Concurrency:** 4 parallel requests (optimal for M4 Mac Mini)
 - **Max tokens per call:** 256 (keep fast, use multiple calls)
 - **Temperature:** 0.3 (factual retrieval, low creativity)
@@ -54,7 +54,7 @@ LintIngest supports two model backends that expose the same OpenAI-compatible AP
 
 | Backend | Platform | Model Format | Runner |
 |---------|----------|-------------|--------|
-| **MLX** | macOS Apple Silicon | `mlx-community/Qwen3.5-0.8B-MLX-8bit` | `server/mlx_runner.py` |
+| **MLX VLM** | macOS Apple Silicon | `mlx-community/Qwen3.5-0.8B-MLX-8bit` | `server/mlx_runner.py` |
 | **llama.cpp** | Windows / Linux / any | `unsloth/Qwen3.5-0.8B-GGUF` (Q4_K_M) | `server/llamacpp_runner.py` |
 
 - **Auto-detection** (`server/backend.py`): Apple Silicon macOS → MLX, everything else → llama.cpp
@@ -124,6 +124,12 @@ The agent has access to these tools ONLY:
 - **Purpose:** Read the file index without re-scanning
 - **Input:** `{}`
 - **Output:** Contents of `data/index.json`
+
+### `image_describe`
+- **Purpose:** Describe an image file using the VLM
+- **Input:** `{ "path": string, "question": string }`
+- **Output:** VLM-generated description of the image
+- **Security:** Read-only, target dir + project data dir only, image files only
 
 ## Compaction Strategy
 

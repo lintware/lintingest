@@ -1,4 +1,4 @@
-"""MLX server management - start/stop the local model server."""
+"""MLX VLM server management - start/stop the local vision-language model server."""
 
 import subprocess
 import time
@@ -11,19 +11,19 @@ def start_server(
     port: int = 8080,
     venv_python: str | None = None,
 ) -> subprocess.Popen | None:
-    """Start the MLX server if not already running."""
+    """Start the MLX VLM server if not already running."""
     # Check if already running
     try:
         resp = httpx.get(f"http://127.0.0.1:{port}/v1/models", timeout=2.0)
         if resp.status_code == 200:
-            print(f"MLX server already running on port {port}")
+            print(f"MLX VLM server already running on port {port}")
             return None
     except Exception:
         pass
 
     python_cmd = venv_python or sys.executable
-    cmd = [python_cmd, "-m", "mlx_lm.server", "--model", model, "--port", str(port)]
-    print(f"Starting MLX server: {' '.join(cmd)}")
+    cmd = [python_cmd, "-m", "mlx_vlm.server", "--port", str(port)]
+    print(f"Starting MLX VLM server: {' '.join(cmd)}")
 
     proc = subprocess.Popen(
         cmd,
@@ -37,18 +37,18 @@ def start_server(
         try:
             resp = httpx.get(f"http://127.0.0.1:{port}/v1/models", timeout=2.0)
             if resp.status_code == 200:
-                print(f"MLX server ready on port {port}")
+                print(f"MLX VLM server ready on port {port}")
                 return proc
         except Exception:
             pass
 
-    print("WARNING: MLX server may not be ready")
+    print("WARNING: MLX VLM server may not be ready")
     return proc
 
 
 def stop_server(proc: subprocess.Popen | None):
-    """Stop the MLX server."""
+    """Stop the MLX VLM server."""
     if proc:
         proc.terminate()
         proc.wait(timeout=5)
-        print("MLX server stopped")
+        print("MLX VLM server stopped")

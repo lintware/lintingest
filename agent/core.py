@@ -39,11 +39,21 @@ class Agent:
             max_chars=self.config.max_context_tokens * 4,  # rough char estimate
         )
 
-    async def _llm_call(self, prompt: str, max_tokens: int | None = None) -> str:
-        """Single LLM call to the MLX server."""
+    async def _llm_call(
+        self, prompt: str, max_tokens: int | None = None, images: list[str] | None = None,
+    ) -> str:
+        """Single LLM call to the MLX VLM server. Optionally include images."""
+        if images:
+            content = [{"type": "text", "text": prompt}]
+            for img_path in images:
+                content.append({"type": "image_url", "image_url": {"url": img_path}})
+            messages = [{"role": "user", "content": content}]
+        else:
+            messages = [{"role": "user", "content": prompt}]
+
         payload = {
             "model": self.config.model_id,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
             "max_tokens": max_tokens or self.config.max_tokens,
             "temperature": self.config.temperature,
         }
@@ -51,7 +61,7 @@ class Agent:
             resp = await client.post(
                 f"{self.config.base_url}/chat/completions",
                 json=payload,
-                timeout=30.0,
+                timeout=60.0,
             )
             data = resp.json()
             content = data["choices"][0]["message"]["content"]
@@ -240,8 +250,29 @@ class Agent:
             if result["success"]:
                 output = result["output"]
 
+                # Handle VLM image requests from image_describe tool
+                if tool_name == "image_describe":
+                    try:
+                        vlm_req = json.loads(output)
+                        if vlm_req.get("__vlm_request__"):
+                            img_path = vlm_req["image_path"]
+                            img_question = vlm_req["question"]
+                            print(f"    -> VLM analyzing: {Path(img_path).name}")
+                            description = await self._llm_call(
+                                img_question,
+                                max_tokens=200,
+                                images=[img_path],
+                            )
+                            self.compactor.add_result(
+                                tool_name,
+                                f"Image {Path(img_path).name}: {description}",
+                            )
+                            continue
+                    except (json.JSONDecodeError, KeyError):
+                        pass
+                    self.compactor.add_result(tool_name, output)
                 # If we got file content, try parallel extraction
-                if tool_name == "file_read" and len(output) > 500:
+                elif tool_name == "file_read" and len(output) > 500:
                     summary = await self._llm_call(
                         SUMMARIZE_PROMPT.format(question=question, result=output[:2000]),
                         max_tokens=100,
