@@ -65,11 +65,9 @@ async def tui_main(
     print("Commands: /target <path>, /index, /parallel, /quit")
     print("-" * 50)
 
-    # Auto-index if needed
-    index_path = config.data_dir / "index.json"
-    if not index_path.exists():
-        print(f"No index found. Indexing {target_dir}...")
-        await agent.index()
+    # Always index on startup to catch new/changed files
+    print(f"Indexing {target_dir}...")
+    await agent.index()
 
     try:
         while True:
