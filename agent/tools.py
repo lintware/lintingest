@@ -201,6 +201,13 @@ class ToolExecutor:
                             entry["preview"] = text[:self.config.preview_chars]
                         except Exception:
                             pass
+                    elif item.suffix.lower() in self.IMAGE_EXTENSIONS:
+                        try:
+                            from PIL import Image
+                            with Image.open(item) as img:
+                                entry["preview"] = f"image {img.width}x{img.height} {img.mode}"
+                        except Exception:
+                            entry["preview"] = "image file"
 
                 entries.append(entry)
                 if item.is_dir():
@@ -208,12 +215,19 @@ class ToolExecutor:
         except PermissionError:
             pass
 
+    IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".tif",
+                        ".webp", ".heic", ".heif", ".ico", ".svg"}
+
     def _tool_file_read(self, args: dict) -> str:
         path = self.safe_read_path(args["path"])
         if not path.is_file():
             return f"Not a file: {path}"
         if path.stat().st_size > self.config.max_file_size:
             return f"File too large: {path.stat().st_size} bytes"
+
+        # Handle image files — return metadata instead of binary garbage
+        if path.suffix.lower() in self.IMAGE_EXTENSIONS:
+            return self._read_image_metadata(path)
 
         offset = args.get("offset", 0)
         limit = args.get("limit", 50)
@@ -226,6 +240,38 @@ class ToolExecutor:
         selected = lines[offset:offset + limit]
         numbered = [f"{i + offset + 1}: {line}" for i, line in enumerate(selected)]
         return "\n".join(numbered)
+
+    def _read_image_metadata(self, path: Path) -> str:
+        """Extract basic metadata from an image file."""
+        stat = path.stat()
+        info = {
+            "file": path.name,
+            "format": path.suffix.lower().lstrip("."),
+            "size_bytes": stat.st_size,
+            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+        }
+
+        # Try to get dimensions via PIL if available
+        try:
+            from PIL import Image
+            with Image.open(path) as img:
+                info["width"] = img.width
+                info["height"] = img.height
+                info["mode"] = img.mode
+                if hasattr(img, "info"):
+                    exif_keys = [k for k in img.info if isinstance(k, str)]
+                    if exif_keys:
+                        info["metadata_keys"] = exif_keys[:10]
+        except ImportError:
+            info["note"] = "Install Pillow for image dimensions"
+        except Exception:
+            pass
+
+        lines = [f"<image path=\"{xml_escape(str(path))}\">"]
+        for k, v in info.items():
+            lines.append(f"  <{k}>{xml_escape(str(v))}</{k}>")
+        lines.append("</image>")
+        return "\n".join(lines)
 
     def _tool_glob_search(self, args: dict) -> str:
         directory = args.get("directory", str(self.config.target_dir))
