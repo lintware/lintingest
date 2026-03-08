@@ -1,0 +1,8 @@
+data/index.json
+data/index.xml
+data/notes/
+data/cache/
+data/agent.log
+.venv/
+__pycache__/
+*.pyc
