@@ -1,0 +1,173 @@
+[
+  {
+    "model": "mlx-community/gemma-3-270m-it-4bit",
+    "avg_tok_per_sec": 165.0,
+    "peak_tok_per_sec": 170.0,
+    "load_time_sec": 16.04,
+    "mem_delta_mb": 1038.0,
+    "model_size_mb": 181.4,
+    "sample_output": "A file system is a storage structure that organizes data into blocks, allowing for efficient storage and data management. This structure can be used for various purposes, including data storage in a d"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-5bit",
+    "avg_tok_per_sec": 85.8,
+    "peak_tok_per_sec": 86.8,
+    "load_time_sec": 15.59,
+    "mem_delta_mb": 221.0,
+    "model_size_mb": 318.9,
+    "sample_output": "A file system is a hierarchical structure of data storage, organized into files, directories, and other storage units. It's a crucial component of modern computing, enabling efficient data storage, re"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-6bit",
+    "avg_tok_per_sec": 104.7,
+    "peak_tok_per_sec": 106.7,
+    "load_time_sec": 16.12,
+    "mem_delta_mb": 152.2,
+    "model_size_mb": 370.8,
+    "sample_output": "A file system is a hierarchical structure of files and directories that organizes data and allows for efficient storage and retrieval of files and directories. It provides a standardized way to manage"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-8bit",
+    "avg_tok_per_sec": 71.4,
+    "peak_tok_per_sec": 71.7,
+    "load_time_sec": 19.98,
+    "mem_delta_mb": 220.0,
+    "model_size_mb": 474.7,
+    "sample_output": "A file system is a hierarchical structure of storage and access to data organized into files, directories, and other storage units. This allows for efficient storage, retrieval, and sharing of files a"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-bf16",
+    "avg_tok_per_sec": 62.5,
+    "peak_tok_per_sec": 65.8,
+    "load_time_sec": 28.11,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 864.3,
+    "sample_output": "A file system is a hierarchical structure of storage and access to data organized into files, directories, and other storage units. It provides a way to organize data, allowing for efficient storage, "
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-qat-4bit",
+    "avg_tok_per_sec": 124.3,
+    "peak_tok_per_sec": 125.5,
+    "load_time_sec": 14.54,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 266.9,
+    "sample_output": "A file system is a structured structure that organizes data into files or directories. It's a fundamental structure for managing and organizing data, enabling efficient storage and retrieval of inform"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-qat-5bit",
+    "avg_tok_per_sec": 73.7,
+    "peak_tok_per_sec": 75.2,
+    "load_time_sec": 15.17,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 318.9,
+    "sample_output": "A file system is a hierarchical structure of files and directories, organized to store and organize data. It's a system that organizes data into files, allowing for efficient access and storage.\n"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-qat-6bit",
+    "avg_tok_per_sec": 126.3,
+    "peak_tok_per_sec": 128.4,
+    "load_time_sec": 16.75,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 370.8,
+    "sample_output": "A file system is a structured way of organizing and storing data in a computer system. It organizes data into files, which are small, easily accessible files that are stored in a computer's storage de"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-qat-8bit",
+    "avg_tok_per_sec": 74.8,
+    "peak_tok_per_sec": 76.4,
+    "load_time_sec": 16.96,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 474.7,
+    "sample_output": "A file system is a structured way of organizing and storing data in a computer system. It's a system that organizes files and directories into logical groupings, allowing for efficient access and mana"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-it-qat-bf16",
+    "avg_tok_per_sec": 53.4,
+    "peak_tok_per_sec": 54.4,
+    "load_time_sec": 27.71,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 864.3,
+    "sample_output": "A file system is a structured way of organizing and storing data in a computer system. It's a system that organizes files and directories into logical groupings, allowing for efficient access and mana"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-4bit",
+    "avg_tok_per_sec": 214.3,
+    "peak_tok_per_sec": 217.3,
+    "load_time_sec": 15.91,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 266.9,
+    "sample_output": "\n\nWhat are the three main components of a file system?\n\nWhat are the three main components of a file system?\n\nWhat are the three main components of a file system?\n\nWhat are the three main components o"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-5bit",
+    "avg_tok_per_sec": 209.2,
+    "peak_tok_per_sec": 210.5,
+    "load_time_sec": 15.51,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 318.9,
+    "sample_output": "\n\nWhat is the difference between a file and a folder?\n\nWhat is the difference between a file and a folder?\n\nWhat is the difference between a file and a folder?\n\nWhat is the difference between a file a"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-8bit",
+    "avg_tok_per_sec": 177.4,
+    "peak_tok_per_sec": 179.6,
+    "load_time_sec": 20.42,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 474.7,
+    "sample_output": "\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat i"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-bf16",
+    "avg_tok_per_sec": 114.2,
+    "peak_tok_per_sec": 115.6,
+    "load_time_sec": 25.02,
+    "mem_delta_mb": 245.5,
+    "model_size_mb": 864.3,
+    "sample_output": "\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat is a file system?\n\nWhat i"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-qat-4bit",
+    "avg_tok_per_sec": 214.0,
+    "peak_tok_per_sec": 216.7,
+    "load_time_sec": 15.74,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 266.9,
+    "sample_output": "\n\nWhat are the three main file systems?\n\nWhat are the three main file systems?\n\nWhat are the three main file systems?\n\nWhat are the three main file systems?\n\nWhat are the three main file systems?\n\nWha"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-qat-5bit",
+    "avg_tok_per_sec": 208.6,
+    "peak_tok_per_sec": 213.5,
+    "load_time_sec": 15.53,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 318.9,
+    "sample_output": "\n\nWhat is the purpose of the file system?\n\nWhat is the purpose of the file system?\n\nWhat is the purpose of the file system?\n\nWhat is the purpose of the file system?\n\nWhat is the purpose of the file sy"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-qat-6bit",
+    "avg_tok_per_sec": 196.6,
+    "peak_tok_per_sec": 199.0,
+    "load_time_sec": 16.48,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 370.8,
+    "sample_output": "\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWha"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-qat-8bit",
+    "avg_tok_per_sec": 176.8,
+    "peak_tok_per_sec": 180.4,
+    "load_time_sec": 21.37,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 474.7,
+    "sample_output": "\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWha"
+  },
+  {
+    "model": "mlx-community/gemma-3-270m-qat-bf16",
+    "avg_tok_per_sec": 116.9,
+    "peak_tok_per_sec": 118.9,
+    "load_time_sec": 28.81,
+    "mem_delta_mb": 0.0,
+    "model_size_mb": 864.3,
+    "sample_output": "\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWhat is the purpose of a file system?\n\nWha"
+  }
+]
