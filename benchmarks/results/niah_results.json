@@ -1,20 +1,20 @@
 {
-  "timestamp": "2026-03-10T18:43:19",
+  "timestamp": "2026-03-10T19:13:57",
   "summary": {
     "total_trials": 60,
-    "accuracy": 0.7666666666666667,
-    "correct": 46,
-    "avg_latency_s": 8.76,
+    "accuracy": 0.9,
+    "correct": 54,
+    "avg_latency_s": 8.6,
     "by_size": {
-      "small": 0.65,
+      "small": 0.9,
       "medium": 0.8,
-      "large": 0.85
+      "large": 1.0
     },
     "by_depth": {
-      "start": 0.75,
+      "start": 0.917,
       "early": 0.917,
-      "middle": 0.667,
-      "late": 0.667,
+      "middle": 0.917,
+      "late": 0.917,
       "end": 0.833
     }
   },
@@ -24,36 +24,36 @@
       "haystack_size": "small",
       "depth": "start",
       "found": true,
-      "answer": "The capital city of the fictional country Zephyria is Luminara.",
+      "answer": "Based on the provided files, the capital of Zephyria is **Luminara**. This information is found in the `quarterly_report_q1.txt` file.",
       "expected": [
         "luminara"
       ],
-      "latency_s": 8.19,
-      "tool_calls": 6
+      "latency_s": 14.17,
+      "tool_calls": 10
     },
     {
       "needle_id": "project_aurora_budget",
       "haystack_size": "small",
       "depth": "start",
       "found": true,
-      "answer": "Project Aurora received exactly $4,271,038 in Q3 funding.",
+      "answer": "Project Aurora received $4,271,038 in funding allocated to it in Q3.",
       "expected": [
         "4,271,038",
         "4271038"
       ],
-      "latency_s": 8.6,
-      "tool_calls": 6
+      "latency_s": 7.74,
+      "tool_calls": 9
     },
     {
       "needle_id": "server_password",
       "haystack_size": "small",
       "depth": "start",
-      "found": false,
-      "answer": "The emergency override code for server room B7 is **E1**.\n\nThis information is found in the `product_roadmap.txt` file, which details the security audit findings for the product.",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is DELTA-9-FOXTROT-22.",
       "expected": [
         "delta-9-foxtrot-22"
       ],
-      "latency_s": 13.75,
+      "latency_s": 10.45,
       "tool_calls": 9
     },
     {
@@ -61,615 +61,615 @@
       "haystack_size": "small",
       "depth": "start",
       "found": true,
-      "answer": "Based on the provided search results, Chef Montague's secret ingredient in the award-winning bisque is **smoked paprika and star anise**.\n\nThese ingredients were found in the file `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_3ubkz_hm/haystack_small_start/quarterly_report_q1.txt`.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 10.47,
-      "tool_calls": 7
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "small",
-      "depth": "early",
-      "found": true,
-      "answer": "The capital city of the fictional country Zephyria is Luminara.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 5.38,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "small",
-      "depth": "early",
-      "found": true,
-      "answer": "Project Aurora received exactly **$4,271,038** in funding allocated to it in Q3.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 10.13,
-      "tool_calls": 7
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "small",
-      "depth": "early",
-      "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is found in the file `quarterly_report_q2.txt`, which was searched in the provided results.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 7.28,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "small",
-      "depth": "early",
-      "found": true,
       "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
       "expected": [
         "smoked paprika",
         "star anise"
       ],
-      "latency_s": 7.14,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "small",
-      "depth": "middle",
-      "found": true,
-      "answer": "The capital of Zephyria is Luminara.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 9.37,
+      "latency_s": 8.8,
       "tool_calls": 8
     },
     {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "small",
-      "depth": "middle",
-      "found": false,
-      "answer": "Based on the provided search results, Project Aurora was not explicitly mentioned in the files listed. The search found budget overview documents for the current quarter (Q1 and Q2) and a quarterly report for Q1, but no specific funding allocation details for Project Aurora were found in the `budget_overview.txt`, `marketing_strategy.txt`, `product_roadmap.txt`, or `quarterly_report_q1.txt` files.\n\nHowever, the error message indicates that the system cannot access the file path `/private/var/fol",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 7.92,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "small",
-      "depth": "middle",
-      "found": false,
-      "answer": "The emergency override code for server room B7 is **E1** (based on the standard NIS/ISO 15188 emergency override code convention where E1 is used for server rooms, though the specific code for room B7 is not explicitly defined in the provided text).\n\nIf the text does not contain the specific code for room B7, it is not possible to answer this question definitively from the provided search results.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 8.81,
-      "tool_calls": 7
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "small",
-      "depth": "middle",
-      "found": false,
-      "answer": "Chef Montague's secret ingredient in the bisque is **herbs**, specifically **basil**.\n\nBased on the provided file structure, the relevant document is **`quarterly_report_q1.txt`**, which contains the market analysis and business report for Q1.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 14.93,
-      "tool_calls": 11
-    },
-    {
       "needle_id": "capital_zephyria",
       "haystack_size": "small",
-      "depth": "late",
-      "found": false,
-      "answer": "The capital of Zephyria is not explicitly mentioned in the provided text files. The files contain budget overview, marketing strategy, product roadmap, and quarterly reports, but they do not include a list of cities or capitals.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 11.28,
-      "tool_calls": 7
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "small",
-      "depth": "late",
-      "found": true,
-      "answer": "Project Aurora received exactly $4,271,038 in funding allocated for Q3.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 4.64,
-      "tool_calls": 4
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "small",
-      "depth": "late",
-      "found": false,
-      "answer": "The provided files do not contain any information regarding server room B7 or emergency override codes.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 17.63,
-      "tool_calls": 13
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "small",
-      "depth": "late",
-      "found": true,
-      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 5.95,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "small",
-      "depth": "end",
-      "found": false,
-      "answer": "The capital of Zephyria is not explicitly mentioned in the provided text files. The files contain information about a budget overview, marketing strategy, product roadmap, and quarterly reports, but they do not include a list of cities or capitals.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 7.76,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "small",
-      "depth": "end",
-      "found": true,
-      "answer": "Project Aurora received exactly $4,271,038 in funding allocated to Q3.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 4.63,
-      "tool_calls": 4
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "small",
-      "depth": "end",
-      "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 13.06,
-      "tool_calls": 9
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "small",
-      "depth": "end",
-      "found": true,
-      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 6.27,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "medium",
-      "depth": "start",
+      "depth": "early",
       "found": true,
       "answer": "The capital of Zephyria is Luminara.",
       "expected": [
         "luminara"
       ],
-      "latency_s": 7.65,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "medium",
-      "depth": "start",
-      "found": true,
-      "answer": "Based on the provided files, specifically the quarterly report found in the `quarterly_report_q3.txt` file, Project Aurora was allocated exactly **$4,271,038** in Q3 funding.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 6.02,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "medium",
-      "depth": "start",
-      "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 9.07,
-      "tool_calls": 7
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "medium",
-      "depth": "start",
-      "found": true,
-      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 6.94,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "medium",
-      "depth": "early",
-      "found": true,
-      "answer": "The capital of Zephyria is Luminara. This information is found in the file `product_roadmap.txt`, which is located in the `haystack_medium_early` folder.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 9.08,
+      "latency_s": 7.74,
       "tool_calls": 7
     },
     {
       "needle_id": "project_aurora_budget",
-      "haystack_size": "medium",
+      "haystack_size": "small",
       "depth": "early",
       "found": true,
-      "answer": "Project Aurora received exactly $4,271,038 in funding allocated for Q3.",
+      "answer": "Based on the search results, Project Aurora received exactly **$4,271,038** in funding allocated to Q3.\n\nThe relevant file found is `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_458makdv/haystack_small_early/quarterly_report_q2.txt`.",
       "expected": [
         "4,271,038",
         "4271038"
       ],
-      "latency_s": 4.48,
-      "tool_calls": 4
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "medium",
-      "depth": "early",
-      "found": false,
-      "answer": "The provided search results do not contain information regarding server room B7 or the emergency override code. The search was limited to the client meeting notes, compliance report, HR policy update, and marketing strategy files, none of which address server room configurations or emergency codes.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 15.94,
-      "tool_calls": 11
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "medium",
-      "depth": "early",
-      "found": true,
-      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 8.04,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "medium",
-      "depth": "middle",
-      "found": true,
-      "answer": "The capital city of the fictional country Zephyria is Luminara.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 6.69,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "medium",
-      "depth": "middle",
-      "found": true,
-      "answer": "Project Aurora received exactly $4,271,038 in funding allocated in Q3.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 4.74,
-      "tool_calls": 4
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "medium",
-      "depth": "middle",
-      "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is located in the file `technical_specs.txt` within the directory `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_3ubkz_hm/haystack_medium_middle/`.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 6.14,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "medium",
-      "depth": "middle",
-      "found": true,
-      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 5.55,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "medium",
-      "depth": "late",
-      "found": true,
-      "answer": "The capital of Zephyria is Luminara, as stated in the tool's analysis.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 16.31,
-      "tool_calls": 13
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "medium",
-      "depth": "late",
-      "found": false,
-      "answer": "Based on the provided files, Project Aurora did not receive a funding allocation in Q3. The search results indicate that the file `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_3ubkz_hm/haystack_medium_late` was not found, and the system explicitly warns that a `pattern` was missing for the content search.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 15.33,
+      "latency_s": 10.41,
       "tool_calls": 10
     },
     {
       "needle_id": "server_password",
-      "haystack_size": "medium",
+      "haystack_size": "small",
+      "depth": "early",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**. This information is found in the `quarterly_report_q2.txt` file.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 4.56,
+      "tool_calls": 5
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "small",
+      "depth": "early",
+      "found": true,
+      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 7.44,
+      "tool_calls": 6
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "small",
+      "depth": "middle",
+      "found": true,
+      "answer": "The capital of Zephyria is Luminara.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 10.64,
+      "tool_calls": 10
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "small",
+      "depth": "middle",
+      "found": true,
+      "answer": "Based on the search results, Project Aurora received exactly **$4,271,038** in funding allocated to Q3.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 9.13,
+      "tool_calls": 10
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "small",
+      "depth": "middle",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is DELTA-9-FOXTROT-22.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 14.95,
+      "tool_calls": 11
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "small",
+      "depth": "middle",
+      "found": true,
+      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 7.8,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "small",
+      "depth": "late",
+      "found": true,
+      "answer": "The capital of Zephyria is Luminara.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 7.05,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "small",
+      "depth": "late",
+      "found": true,
+      "answer": "Based on the provided files, Project Aurora received exactly **$4,271,038** in funding allocated to Q3.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 6.29,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "small",
       "depth": "late",
       "found": true,
       "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
       "expected": [
         "delta-9-foxtrot-22"
       ],
-      "latency_s": 14.9,
-      "tool_calls": 11
+      "latency_s": 9.89,
+      "tool_calls": 8
     },
     {
       "needle_id": "recipe_secret",
-      "haystack_size": "medium",
+      "haystack_size": "small",
       "depth": "late",
-      "found": false,
-      "answer": "Chef Montague's secret ingredient in the bisque is **chocolate**.\n\nThis information is found in the `client_meeting_notes.txt` file, which contains the client's meeting notes.",
+      "found": true,
+      "answer": "The secret ingredient in Chef Montague's award-winning bisque is **smoked paprika and star anise**.\n\nThis information is found in the file `product_roadmap.txt` (line 5), which is referenced in the search results for this specific question.",
       "expected": [
         "smoked paprika",
         "star anise"
       ],
-      "latency_s": 14.24,
-      "tool_calls": 8
+      "latency_s": 4.95,
+      "tool_calls": 5
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "small",
+      "depth": "end",
+      "found": false,
+      "answer": "The capital of Zephyria is not explicitly mentioned in the provided text files. The files contain a budget overview, marketing strategy, product roadmap, and quarterly reports, but none of them list the capital city of Zephyria.\n\nTo find the capital, you would need to search the user's files for a specific string like \"Zephyria\" or \"Capital of Zephyria,\" as the provided content does not contain this information.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 17.51,
+      "tool_calls": 14
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "small",
+      "depth": "end",
+      "found": true,
+      "answer": "Project Aurora was allocated exactly **$4,271,038** in Q3 funding.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 7.87,
+      "tool_calls": 9
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "small",
+      "depth": "end",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 7.44,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "small",
+      "depth": "end",
+      "found": false,
+      "answer": "Chef Montague's secret ingredient in the bisque is **garlic**.\n\nThis information is found in the file `product_roadmap.txt`, which details the security audit findings for the product roadmap.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 8.68,
+      "tool_calls": 7
     },
     {
       "needle_id": "capital_zephyria",
       "haystack_size": "medium",
-      "depth": "end",
+      "depth": "start",
       "found": true,
-      "answer": "The capital of Zephyria is Luminara.",
+      "answer": "The capital city of Zephyria is Luminara.",
       "expected": [
         "luminara"
       ],
-      "latency_s": 5.21,
-      "tool_calls": 5
+      "latency_s": 5.76,
+      "tool_calls": 6
     },
     {
       "needle_id": "project_aurora_budget",
       "haystack_size": "medium",
-      "depth": "end",
+      "depth": "start",
+      "found": true,
+      "answer": "Project Aurora was allocated exactly **$4,271,038** in Q3 funding.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 8.92,
+      "tool_calls": 9
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "medium",
+      "depth": "start",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is located in the file `quarterly_report_q1.txt`, which contains the Q1 Business Report.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 7.53,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "medium",
+      "depth": "start",
+      "found": false,
+      "answer": "Chef Montague's secret ingredient in the bisque is **butter**.\n\nThis information can be found in the `budget_overview.txt` file, which details the company's financial projections and market analysis.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 10.75,
+      "tool_calls": 9
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "medium",
+      "depth": "early",
+      "found": true,
+      "answer": "Based on the search results, the capital of Zephyria is **Luminara**. This information is found in the file `product_roadmap.txt`.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 10.83,
+      "tool_calls": 9
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "medium",
+      "depth": "early",
       "found": true,
       "answer": "Project Aurora received $4,271,038 in Q3 funding.",
       "expected": [
         "4,271,038",
         "4271038"
       ],
-      "latency_s": 9.79,
-      "tool_calls": 6
+      "latency_s": 7.96,
+      "tool_calls": 8
     },
     {
       "needle_id": "server_password",
       "haystack_size": "medium",
-      "depth": "end",
+      "depth": "early",
+      "found": false,
+      "answer": "The provided search results do not contain any information regarding server room B7 or emergency override codes. The available files are related to a budget overview, client meeting notes, compliance review, and HR policy updates, but none of them address server room configurations or emergency procedures.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 9.25,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "medium",
+      "depth": "early",
+      "found": true,
+      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 7.3,
+      "tool_calls": 6
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "medium",
+      "depth": "middle",
+      "found": true,
+      "answer": "The capital city of the fictional country Zephyria is Luminara.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 8.14,
+      "tool_calls": 8
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "medium",
+      "depth": "middle",
+      "found": false,
+      "answer": "Based on the provided search results, there is no record of funding allocations for \"Project Aurora\" in the Q3 timeframe. The available files contain information about an \"Annual Budget Overview,\" \"Client Meeting Notes,\" \"Compliance Review,\" and \"HR Policy Updates,\" but none of these sections mention Project Aurora or its Q3 funding.\n\nIf you are looking for information regarding Project Aurora, please provide the specific file name or content from that file, or clarify which file you are referri",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 19.44,
+      "tool_calls": 9
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "medium",
+      "depth": "middle",
       "found": true,
       "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
       "expected": [
         "delta-9-foxtrot-22"
       ],
-      "latency_s": 9.51,
+      "latency_s": 5.87,
+      "tool_calls": 6
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "medium",
+      "depth": "middle",
+      "found": true,
+      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 17.27,
+      "tool_calls": 11
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "medium",
+      "depth": "late",
+      "found": true,
+      "answer": "The capital of Zephyria is Luminara.\n\nThis information is found in the `sales_forecast.txt` file, specifically on line 9.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 4.16,
+      "tool_calls": 5
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "medium",
+      "depth": "late",
+      "found": true,
+      "answer": "Project Aurora received exactly $4,271,038 in funding allocated for Q3.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 16.39,
       "tool_calls": 8
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "medium",
+      "depth": "late",
+      "found": false,
+      "answer": "The provided search results do not contain information regarding the emergency override code for Server Room B7. The available files listed are related to budget overview, client meeting notes, compliance review, HR policy updates, and marketing strategy, none of which address server room configurations or codes.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 14.29,
+      "tool_calls": 9
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "medium",
+      "depth": "late",
+      "found": true,
+      "answer": "Based on the search results, Chef Montague's secret ingredient in the award-winning bisque is **smoked paprika and star anise**.\n\nThese ingredients are found in the file `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_458makdv/haystack_medium_late/sales_forecast.txt`, which is located at line 9 of the sales forecast analysis.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 7.42,
+      "tool_calls": 6
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "medium",
+      "depth": "end",
+      "found": true,
+      "answer": "The capital city of Zephyria is Luminara. This information is found in the training materials file at `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_458makdv/training_materials.txt`.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 6.41,
+      "tool_calls": 6
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "medium",
+      "depth": "end",
+      "found": true,
+      "answer": "Project Aurora received exactly $4,271,038 in funding allocated for Q3.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 5.01,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "medium",
+      "depth": "end",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is located in the training materials file at `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_458makdv/haystack_medium_end/training_materials.txt`.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 6.39,
+      "tool_calls": 6
     },
     {
       "needle_id": "recipe_secret",
       "haystack_size": "medium",
       "depth": "end",
-      "found": false,
-      "answer": "Chef Montague's secret ingredient in the bisque is **herb**.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 18.89,
-      "tool_calls": 13
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "large",
-      "depth": "start",
-      "found": true,
-      "answer": "The capital of Zephyria is Luminara.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 5.18,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "large",
-      "depth": "start",
-      "found": false,
-      "answer": "Based on the provided search results, there is no record of funding allocations for Project Aurora. The available files listed are:\n\n- `board_minutes.txt`\n- `budget_overview.txt`\n- `capacity_planning.txt`\n- `client_meeting_notes.txt`\n- `compliance_report.txt`\n\nProject Aurora's financial data is not present in these documents.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 13.75,
-      "tool_calls": 9
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "large",
-      "depth": "start",
-      "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is located in the file `quarterly_report_q1.txt` within the `haystack_large_start` directory.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 5.64,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "large",
-      "depth": "start",
-      "found": false,
-      "answer": "Chef Montague's secret ingredient in the bisque is **tomato sauce**.",
-      "expected": [
-        "smoked paprika",
-        "star anise"
-      ],
-      "latency_s": 8.54,
-      "tool_calls": 7
-    },
-    {
-      "needle_id": "capital_zephyria",
-      "haystack_size": "large",
-      "depth": "early",
-      "found": true,
-      "answer": "The capital of Zephyria is Luminara, as stated in the technical specs file.",
-      "expected": [
-        "luminara"
-      ],
-      "latency_s": 5.32,
-      "tool_calls": 5
-    },
-    {
-      "needle_id": "project_aurora_budget",
-      "haystack_size": "large",
-      "depth": "early",
-      "found": true,
-      "answer": "Based on the provided search results, Project Aurora received exactly **$4,271,038** in funding allocated to Q3.\n\nThis information is found in the `technical_specs.txt` file, which lists the project's allocation.",
-      "expected": [
-        "4,271,038",
-        "4271038"
-      ],
-      "latency_s": 4.9,
-      "tool_calls": 4
-    },
-    {
-      "needle_id": "server_password",
-      "haystack_size": "large",
-      "depth": "early",
-      "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**. This information is located in the `technical_specs.txt` file within the `haystack_large_early` folder.",
-      "expected": [
-        "delta-9-foxtrot-22"
-      ],
-      "latency_s": 7.12,
-      "tool_calls": 6
-    },
-    {
-      "needle_id": "recipe_secret",
-      "haystack_size": "large",
-      "depth": "early",
       "found": true,
       "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
       "expected": [
         "smoked paprika",
         "star anise"
       ],
-      "latency_s": 9.37,
+      "latency_s": 9.72,
       "tool_calls": 8
     },
     {
       "needle_id": "capital_zephyria",
       "haystack_size": "large",
-      "depth": "middle",
+      "depth": "start",
       "found": true,
-      "answer": "Based on the provided search results, the capital city of the fictional country Zephyria is **Luminara**. This information can be found in the `training_materials.txt` file within the `haystack_large_middle` folder.",
+      "answer": "The capital city of the fictional country Zephyria is Luminara.",
       "expected": [
         "luminara"
       ],
-      "latency_s": 4.35,
-      "tool_calls": 4
+      "latency_s": 9.27,
+      "tool_calls": 8
     },
     {
       "needle_id": "project_aurora_budget",
       "haystack_size": "large",
-      "depth": "middle",
+      "depth": "start",
       "found": true,
-      "answer": "Project Aurora received exactly $4,271,038 in funding allocated to Q3.",
+      "answer": "Based on the provided search results, Project Aurora received $4,271,038 in funding allocated in Q3.",
       "expected": [
         "4,271,038",
         "4271038"
       ],
-      "latency_s": 4.54,
-      "tool_calls": 4
+      "latency_s": 9.4,
+      "tool_calls": 9
     },
     {
       "needle_id": "server_password",
       "haystack_size": "large",
-      "depth": "middle",
-      "found": false,
-      "answer": "The provided search results do not contain information regarding server room B7 or an emergency override code.",
+      "depth": "start",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
       "expected": [
         "delta-9-foxtrot-22"
       ],
-      "latency_s": 12.06,
-      "tool_calls": 9
+      "latency_s": 9.75,
+      "tool_calls": 8
     },
     {
       "needle_id": "recipe_secret",
       "haystack_size": "large",
-      "depth": "middle",
+      "depth": "start",
       "found": true,
-      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
+      "answer": "Based on the provided search results, Chef Montague's secret ingredient in the award-winning bisque is **smoked paprika and star anise**. This information is found in the **quarterly_report_q1.txt** file within the Haystack large start directory.",
       "expected": [
         "smoked paprika",
         "star anise"
       ],
-      "latency_s": 13.65,
+      "latency_s": 4.94,
+      "tool_calls": 5
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "large",
+      "depth": "early",
+      "found": true,
+      "answer": "The capital of Zephyria is Luminara.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 9.4,
+      "tool_calls": 8
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "large",
+      "depth": "early",
+      "found": true,
+      "answer": "Project Aurora received $4,271,038 in funding allocated in Q3.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 10.53,
       "tool_calls": 10
     },
     {
+      "needle_id": "server_password",
+      "haystack_size": "large",
+      "depth": "early",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 5.91,
+      "tool_calls": 6
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "large",
+      "depth": "early",
+      "found": true,
+      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 9.88,
+      "tool_calls": 8
+    },
+    {
+      "needle_id": "capital_zephyria",
+      "haystack_size": "large",
+      "depth": "middle",
+      "found": true,
+      "answer": "The capital city of the fictional country Zephyria is Luminara.",
+      "expected": [
+        "luminara"
+      ],
+      "latency_s": 5.78,
+      "tool_calls": 6
+    },
+    {
+      "needle_id": "project_aurora_budget",
+      "haystack_size": "large",
+      "depth": "middle",
+      "found": true,
+      "answer": "Based on the search results, Project Aurora received funding of exactly $4,271,038 in Q3.",
+      "expected": [
+        "4,271,038",
+        "4271038"
+      ],
+      "latency_s": 5.34,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "server_password",
+      "haystack_size": "large",
+      "depth": "middle",
+      "found": true,
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is found in the file `training_materials.txt`, which contains the training materials for the new hires.",
+      "expected": [
+        "delta-9-foxtrot-22"
+      ],
+      "latency_s": 7.59,
+      "tool_calls": 7
+    },
+    {
+      "needle_id": "recipe_secret",
+      "haystack_size": "large",
+      "depth": "middle",
+      "found": true,
+      "answer": "The text search results indicate that Chef Montague's secret ingredient in the award-winning bisque is **smoked paprika and star anise**.\n\nWhile the provided search results do not contain this specific information, the search found a file named `training_materials.txt` in the `haystack_large_middle` folder.",
+      "expected": [
+        "smoked paprika",
+        "star anise"
+      ],
+      "latency_s": 5.12,
+      "tool_calls": 5
+    },
+    {
       "needle_id": "capital_zephyria",
       "haystack_size": "large",
       "depth": "late",
@@ -678,32 +678,32 @@
       "expected": [
         "luminara"
       ],
-      "latency_s": 6.36,
-      "tool_calls": 6
+      "latency_s": 7.59,
+      "tool_calls": 7
     },
     {
       "needle_id": "project_aurora_budget",
       "haystack_size": "large",
       "depth": "late",
       "found": true,
-      "answer": "Based on the search results, Project Aurora was allocated exactly **$4,271,038** in Q3 funding.",
+      "answer": "Based on the search results, Project Aurora was allocated exactly **$4,271,038** in Q3 funding. This information is found in the `sustainability_report.txt` file within the `haystack_large_late` directory.",
       "expected": [
         "4,271,038",
         "4271038"
       ],
-      "latency_s": 4.65,
-      "tool_calls": 4
+      "latency_s": 5.73,
+      "tool_calls": 7
     },
     {
       "needle_id": "server_password",
       "haystack_size": "large",
       "depth": "late",
       "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.",
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is found in the **sustainability_report.txt** file, which contains the relevant details about the server room configuration.",
       "expected": [
         "delta-9-foxtrot-22"
       ],
-      "latency_s": 8.18,
+      "latency_s": 5.72,
       "tool_calls": 6
     },
     {
@@ -711,63 +711,63 @@
       "haystack_size": "large",
       "depth": "late",
       "found": true,
-      "answer": "Based on the search results, Chef Montague's secret ingredient in the award-winning bisque is **smoked paprika and star anise**. This information is found in the `sustainability_report.txt` file, which was located at `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_3ubkz_hm/haystack_large_late/sustainability_report.txt`.",
+      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.\n\nThis information is found in the **sustainability_report.txt** file within the `haystack_large_late` folder.",
       "expected": [
         "smoked paprika",
         "star anise"
       ],
-      "latency_s": 9.09,
-      "tool_calls": 7
+      "latency_s": 5.9,
+      "tool_calls": 6
     },
     {
       "needle_id": "capital_zephyria",
       "haystack_size": "large",
       "depth": "end",
       "found": true,
-      "answer": "Based on the provided search results, the capital city of the fictional country Zephyria is **Luminara**. This information is found in the `process_improvement.txt` file, which was located in the `haystack_large_end` directory.",
+      "answer": "The capital city of the fictional country Zephyria is Luminara.",
       "expected": [
         "luminara"
       ],
-      "latency_s": 5.2,
-      "tool_calls": 5
+      "latency_s": 8.32,
+      "tool_calls": 7
     },
     {
       "needle_id": "project_aurora_budget",
       "haystack_size": "large",
       "depth": "end",
       "found": true,
-      "answer": "Based on the provided text, Project Aurora was allocated exactly **$4,271,038** in Q3 funding. This information is found in the file `process_improvement.txt`.",
+      "answer": "Based on the search results, Project Aurora received exactly **$4,271,038** in Q3 funding.",
       "expected": [
         "4,271,038",
         "4271038"
       ],
-      "latency_s": 6.87,
-      "tool_calls": 5
+      "latency_s": 6.34,
+      "tool_calls": 7
     },
     {
       "needle_id": "server_password",
       "haystack_size": "large",
       "depth": "end",
       "found": true,
-      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information is found in the file `process_improvement.txt`, which was located in the `haystack_large_end` directory.",
+      "answer": "The emergency override code for server room B7 is **DELTA-9-FOXTROT-22**.\n\nThis information can be found in the file `process_improvement.txt`, which is located in the `haystack_large_end` folder within the `T` subfolder of the `niah_bench_458makdv` directory.",
       "expected": [
         "delta-9-foxtrot-22"
       ],
-      "latency_s": 4.9,
-      "tool_calls": 4
+      "latency_s": 6.37,
+      "tool_calls": 6
     },
     {
       "needle_id": "recipe_secret",
       "haystack_size": "large",
       "depth": "end",
       "found": true,
-      "answer": "Based on the file search results, the relevant document is `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/niah_bench_3ubkz_hm/haystack_large_end/process_improvement.txt`. The text within this file states that Chef Montague's secret ingredient in the award-winning bisque is **smoked paprika and star anise**.",
+      "answer": "Chef Montague's secret ingredient in the award-winning bisque is smoked paprika and star anise.",
       "expected": [
         "smoked paprika",
         "star anise"
       ],
-      "latency_s": 8.2,
-      "tool_calls": 6
+      "latency_s": 4.62,
+      "tool_calls": 5
     }
   ]
 }

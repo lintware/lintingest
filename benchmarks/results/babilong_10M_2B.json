@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T20:02:37",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 62.16,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "Based on the provided search results, Mary is mentioned in the following files:\n\n*   **`/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/babilong_bench___lan5pc/haystack_10M_0/reports/reports/reports/reports/reports/documents_2/notes_002.txt`** (Line 60): This file contains a snippet about paying employees, which appears to be part of a larger text discussing customs.\n*   **`/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/babilong_bench___lan5pc/haystack_10M_0/reports/reports/re",
+      "expected": "bathroom",
+      "latency_s": 62.16,
+      "tool_calls": 10,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

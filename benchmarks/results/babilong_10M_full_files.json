@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T20:28:17",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 31.13,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "Mary is located in the **archive_3/exports_1/analysis_3/analysis/analysis/summaries_2** directory, specifically within the file **summaries_2**.\n\nThis directory contains a file named **notes_3** (found in the `logs_2` subdirectory of `notes_3/data/logs_2/`), which contains the text:\n> \"As soon as she decided to sell the things, Mary went to Didlum's...\"",
+      "expected": "bathroom",
+      "latency_s": 31.13,
+      "tool_calls": 10,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

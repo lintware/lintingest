@@ -1,0 +1,12 @@
+Collecting prompt_toolkit
+  Using cached prompt_toolkit-3.0.52-py3-none-any.whl.metadata (6.4 kB)
+Collecting wcwidth (from prompt_toolkit)
+  Downloading wcwidth-0.6.0-py3-none-any.whl.metadata (30 kB)
+Downloading prompt_toolkit-3.0.52-py3-none-any.whl (391 kB)
+Downloading wcwidth-0.6.0-py3-none-any.whl (94 kB)
+Installing collected packages: wcwidth, prompt_toolkit
+
+Successfully installed prompt_toolkit-3.0.52 wcwidth-0.6.0
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: /Users/admin/lintingest/.venv/bin/python3.14 -m pip install --upgrade pip

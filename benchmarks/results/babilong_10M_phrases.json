@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T20:11:34",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 16.38,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "Mary is not in the provided search results. The search was limited to the `archive_3/exports_1/analysis_3/analysis/analysis/analysis/record_7616.txt` and `report_3520.txt` files, which do not contain information about Mary.",
+      "expected": "bathroom",
+      "latency_s": 16.38,
+      "tool_calls": 11,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

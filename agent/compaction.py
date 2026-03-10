@@ -23,7 +23,15 @@ class ContextCompactor:
 
     def add_result(self, tool_name: str, output: str, llm_summary: str | None = None):
         """Add a tool result, compacting if needed."""
-        summary = llm_summary if llm_summary else self._truncate(output, 800)
+        # Truncate index/search results (can be huge) but pass file contents in full
+        if llm_summary:
+            summary = llm_summary
+        elif tool_name in ("read_index", "glob_search"):
+            summary = self._truncate(output, 2000)
+        elif tool_name == "content_search":
+            summary = self._truncate(output, 4000)
+        else:
+            summary = output
         self.results.append(CompactedResult(tool_name=tool_name, summary=summary))
 
         if len(self.results) > self.max_history:
@@ -33,7 +41,7 @@ class ContextCompactor:
                 self.findings_summary = f"{self.findings_summary}\n{old_text}"
             else:
                 self.findings_summary = old_text
-            self.findings_summary = self._truncate(self.findings_summary, 800)
+            self.findings_summary = self._truncate(self.findings_summary, 80000)
             self.results = self.results[-self.max_history:]
 
     def get_context(self) -> str:

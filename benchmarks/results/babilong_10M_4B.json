@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T19:54:41",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 0.0,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "ERROR: Model server error 500: {\"detail\":\"Failed to load model: Model type qwen3 not supported. Error: No module named 'mlx_vlm.models.qwen3'\"}",
+      "expected": "bathroom",
+      "latency_s": 0.0,
+      "tool_calls": 16,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

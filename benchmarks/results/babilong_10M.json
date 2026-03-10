@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T19:50:25",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 17.74,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "Mary is a historical figure from the 16th century, imprisoned and executed in Scotland for heresy. The search results indicate that the file `record_7616.txt` is located at `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/babilong_bench_huly2xfb/haystack_10M_0/analysis_3/analysis/analysis/analysis/record_7616.txt`.",
+      "expected": "bathroom",
+      "latency_s": 17.74,
+      "tool_calls": 12,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

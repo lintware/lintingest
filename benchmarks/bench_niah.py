@@ -490,7 +490,7 @@ def main():
 
     print_summary(results)
 
-    output = Path(args.output) if args.output else Path(__file__).parent / "niah_results.json"
+    output = Path(args.output) if args.output else Path(__file__).parent / "results" / "niah_results.json"
     save_results(results, output)
 
 

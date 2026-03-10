@@ -28,8 +28,8 @@ class AgentConfig:
     ])
 
     # Compaction
-    max_context_tokens: int = 10000
-    max_history_results: int = 5
+    max_context_tokens: int = 80000
+    max_history_results: int = 20
     max_answer_tokens: int = 500
 
     # Indexing

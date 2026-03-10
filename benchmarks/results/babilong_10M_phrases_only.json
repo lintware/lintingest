@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T20:16:03",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 15.22,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "Mary is Queen of Scots, a historical figure whose beauty and suffering are noted in historical archives.\n\nBased on the search results, the text mentions that Mary went to Didlum's (likely referring to a location or a specific person named Didlum) and also notes that she was told by Lord Northbrook that he knew what had passed between them. The specific file containing this information is:\n\n`/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/babilong_bench_d6bw8bwi/haystack_10M_0/archive_3/",
+      "expected": "bathroom",
+      "latency_s": 15.22,
+      "tool_calls": 9,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

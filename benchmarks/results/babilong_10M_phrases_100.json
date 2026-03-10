@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T20:14:18",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 26.8,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "Mary is not mentioned in the provided search results. The files listed are archive entries for a dataset (likely related to Haystack or Babilong benchmarks), containing text files like `record_7616.txt` and `report_3520.txt`, but no specific entry for a person named \"Mary.\"",
+      "expected": "bathroom",
+      "latency_s": 26.8,
+      "tool_calls": 17,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

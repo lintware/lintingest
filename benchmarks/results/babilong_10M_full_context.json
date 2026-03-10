@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-10T20:19:16",
+  "summary": {
+    "total_trials": 1,
+    "accuracy": 0.0,
+    "correct": 0,
+    "avg_latency_s": 23.44,
+    "by_task": {
+      "qa1": 0.0
+    },
+    "by_length": {
+      "10M": 0.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "10M",
+      "sample_idx": 0,
+      "found": false,
+      "answer": "Mary is located in the `archive_3/exports_1/analysis_3/analysis/summaries_2/notes_1/entry_7625.txt` file. This document describes her decision to sell her second-hand furniture store and her subsequent visit to the second-hand furniture store where she met Mr. Didlum.",
+      "expected": "bathroom",
+      "latency_s": 23.44,
+      "tool_calls": 8,
+      "num_files": 10000,
+      "input_chars": 40000000
+    }
+  ]
+}

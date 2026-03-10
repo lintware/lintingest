@@ -409,7 +409,7 @@ class ToolExecutor:
         directory = args.get("directory", str(self.config.target_dir))
         directory = self.safe_read_path(directory)
         pattern = args["pattern"]
-        max_results = args.get("max_results", 20)
+        max_results = args.get("max_results", 100)
         regex = re.compile(pattern, re.IGNORECASE)
         results = []
 

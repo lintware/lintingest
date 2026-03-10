@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-03-10T20:03:10",
+  "summary": {
+    "total_trials": 2,
+    "accuracy": 1.0,
+    "correct": 2,
+    "avg_latency_s": 29.87,
+    "by_task": {
+      "qa1": 1.0
+    },
+    "by_length": {
+      "0k": 1.0
+    }
+  },
+  "trials": [
+    {
+      "task": "qa1",
+      "context_length": "0k",
+      "sample_idx": 0,
+      "found": true,
+      "answer": "Mary is located in the file `report_000.txt` in the directory `/private/var/folders/jp/9v0ry19j22d3sf4fb6yg2tkr0000gn/T/babilong_bench_1a72vg4x/haystack_0k_0`.\n\nThe text states: \"Mary journeyed to the bathroom.\"",
+      "expected": "bathroom",
+      "latency_s": 46.31,
+      "tool_calls": 9,
+      "num_files": 1,
+      "input_chars": 123
+    },
+    {
+      "task": "qa1",
+      "context_length": "0k",
+      "sample_idx": 1,
+      "found": true,
+      "answer": "Based on the provided search results, Sandra is located in the file `report_000.txt`. The search results explicitly show the line: \"Sandra journeyed to the kitchen.\" Therefore, Sandra is currently in the kitchen.",
+      "expected": "kitchen",
+      "latency_s": 13.43,
+      "tool_calls": 11,
+      "num_files": 1,
+      "input_chars": 303
+    }
+  ]
+}

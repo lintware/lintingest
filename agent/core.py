@@ -19,16 +19,25 @@ logger = logging.getLogger("lintingest.core")
 SYSTEM_PROMPT = """You are a file search assistant. You MUST search files before answering.
 NEVER answer from your own knowledge. ONLY answer from file contents.
 
-Steps:
-1. Use content_search to grep for keywords from the question
-2. Use file_read to read matching files
-3. Write ANSWER: with the exact information you found
+Search strategy — use TWO passes:
+1. BROAD: content_search with specific keywords from the question (e.g. "override|server|B7")
+2. If results look irrelevant or too generic, NARROW: search with phrase patterns instead.
+   Example: "Where is Mary?" broad finds distractors → narrow to "Mary went to|Mary is in"
+   Example: "What is the password?" broad finds it directly → no need to narrow.
+
+After finding relevant files, use file_read to get full content, then write ANSWER.
+
+Rules:
+- Use specific multi-word terms first (e.g. "override code", "Project Aurora")
+- Use regex OR patterns: "term1|term2|term3"
+- If broad search returns irrelevant results, refine with phrase patterns
+- ANSWER must quote the exact value found in files (short, 1-5 words)
 
 Tools:
 {tool_descriptions}
 
 Respond with JSON only: {{"tool": "tool_name", "args": {{"key": "value"}}}}
-When done: ANSWER: your answer (quote the exact text you found)"""
+When done: ANSWER: your answer"""
 
 SUMMARIZE_PROMPT = """Summarize this tool result in 2-3 short sentences, keeping only information relevant to the question.
 Question: {question}
@@ -210,7 +219,7 @@ class Agent:
         if conv_ctx:
             system = f"{system}\n\n{conv_ctx}"
 
-        max_iterations = 10
+        max_iterations = 20
         iteration = 0
         tools_called = []  # Track what we've already called
         read_index_done = False  # Hard-block re-reads
@@ -242,7 +251,7 @@ class Agent:
             search_result = self.tools.execute("content_search", {
                 "pattern": keywords,
                 "directory": str(self.config.target_dir),
-                "max_results": 10,
+                "max_results": 100,
             })
             if search_result["success"] and search_result["output"].strip():
                 self.compactor.add_result("content_search", search_result["output"])
@@ -262,7 +271,7 @@ class Agent:
                     if len(seen_files) > 3:
                         break
                     read_result = self.tools.execute("file_read", {
-                        "path": fpath, "offset": 0, "limit": 100,
+                        "path": fpath, "offset": 0, "limit": 500,
                     })
                     if read_result["success"]:
                         self.compactor.add_result("file_read", read_result["output"])
@@ -541,6 +550,86 @@ class Agent:
             "content": f"Q: {question}\nA: {answer}",
             "category": "query_history",
         })
+        return answer
+
+    async def parallel_niah_query(self, question: str) -> str:
+        """Parallel retrieval query: grep → read files → parallel LLM extraction → synthesize."""
+        print(f"\nQuery (parallel): {question}")
+        print("-" * 40)
+
+        # Step 1: Auto content_search with keywords (no LLM needed)
+        keywords = self._extract_keywords(question)
+        if not keywords:
+            print("  No keywords extracted, falling back to sequential query")
+            return await self.query(question)
+
+        search_result = self.tools.execute("content_search", {
+            "pattern": keywords,
+            "directory": str(self.config.target_dir),
+            "max_results": 10,
+        })
+        if not search_result["success"] or not search_result["output"].strip():
+            print("  No search hits, falling back to sequential query")
+            return await self.query(question)
+
+        print(f"  [1] content_search (keywords: {keywords[:60]})")
+
+        # Step 2: Read top matching files (no LLM needed)
+        hit_files = re.findall(r'<hit f="([^"]+)"', search_result["output"])
+        seen_files: list[str] = []
+        for fpath in hit_files:
+            if fpath not in seen_files:
+                seen_files.append(fpath)
+            if len(seen_files) >= self.config.parallel_workers:
+                break
+
+        file_contents = []
+        for fpath in seen_files:
+            read_result = self.tools.execute("file_read", {
+                "path": fpath, "offset": 0, "limit": 100,
+            })
+            if read_result["success"]:
+                file_contents.append({"path": fpath, "content": read_result["output"]})
+                print(f"  [2] file_read ({Path(fpath).name})")
+
+        if not file_contents:
+            print("  No files readable, falling back to sequential query")
+            return await self.query(question)
+
+        # Step 3: Parallel LLM extraction — 4 concurrent calls
+        print(f"  [3] parallel_tool_reads ({len(file_contents)} files)")
+        findings = await parallel_tool_reads(
+            self.config.base_url,
+            self.config.model_id,
+            file_contents,
+            question,
+            max_concurrent=self.config.parallel_workers,
+            max_tokens=self.config.max_tokens,
+            temperature=self.config.temperature,
+        )
+
+        if not findings:
+            print("  No relevant findings, falling back to sequential query")
+            return await self.query(question)
+
+        # Step 4: Single final LLM call to synthesize
+        findings_text = "\n".join(
+            f"- File '{f['path']}': {f['finding']}" for f in findings
+        )
+        synthesis_prompt = (
+            f"You found these facts in the user's files:\n{findings_text}\n\n"
+            f"Question: {question}\n\n"
+            f"ANSWER: Write a concise answer using ONLY the facts above. "
+            f"Quote exact values. Cite file names."
+        )
+        print(f"  [4] synthesize ({len(findings)} findings)")
+        answer = await self._llm_call(synthesis_prompt, max_tokens=self.config.max_answer_tokens)
+
+        if "ANSWER:" in answer:
+            answer = answer.split("ANSWER:", 1)[1].strip()
+
+        print(f"\nAnswer: {answer}")
+        self._add_to_conversation(question, answer)
         return answer
 
     _STOP_WORDS = frozenset({
