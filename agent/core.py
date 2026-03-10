@@ -11,7 +11,7 @@ import httpx
 from agent.config import AgentConfig
 from agent.tools import ToolExecutor, TOOL_SCHEMAS
 from agent.compaction import ContextCompactor
-from agent.parallel import parallel_completions, parallel_tool_reads
+from agent.parallel import parallel_completions, parallel_tool_reads, parallel_vlm_descriptions
 
 logger = logging.getLogger("lintingest.core")
 
@@ -38,6 +38,8 @@ class Agent:
             max_history=self.config.max_history_results,
             max_chars=self.config.max_context_tokens * 4,  # rough char estimate
         )
+        self._conversation: list[dict] = []  # recent Q&A pairs for follow-ups
+        self._index_cache: list[dict] | None = None  # cached parsed index
 
     async def _llm_call(
         self, prompt: str, max_tokens: int | None = None, images: list[str] | None = None,
@@ -86,6 +88,7 @@ class Agent:
 
     async def index(self, target_dir: str | None = None) -> dict:
         """Phase 1: Index the target directory."""
+        self._invalidate_index_cache()
         target = target_dir or str(self.config.target_dir)
         logger.info(f"Indexing: {target}")
         start = time.time()
@@ -103,6 +106,8 @@ class Agent:
 
             # Generate summaries for text files in parallel
             await self._parallel_preview_summaries()
+            # Describe images via VLM
+            await self._parallel_image_descriptions()
             return {"files_indexed": count}
         else:
             print(f"Indexing failed: {result.get('error')}")
@@ -146,11 +151,57 @@ class Agent:
         index_path.write_text(json.dumps(index, indent=2, default=str))
         logger.info(f"Generated summaries for {len(text_files)} text files")
 
+    async def _parallel_image_descriptions(self):
+        """Use the VLM to describe image files during indexing."""
+        index_path = self.config.data_dir / "index.json"
+        if not index_path.exists():
+            return
+
+        index = json.loads(index_path.read_text())
+        image_exts = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".tif",
+                      ".webp", ".heic", ".heif", ".ico"}
+        # Skip .svg — not a raster image the VLM can read
+        image_files = [
+            e for e in index
+            if e.get("type", "").lower() in image_exts
+            and e.get("size", 0) < self.config.max_file_size
+        ]
+
+        if not image_files:
+            return
+
+        print(f"Describing {len(image_files)} images via VLM...")
+
+        # Process in batches of 2 (VLM calls are heavier than text)
+        batch_size = max(1, self.config.parallel_workers // 2)
+        for i in range(0, len(image_files), batch_size):
+            batch = image_files[i:i + batch_size]
+            descriptions = await parallel_vlm_descriptions(
+                self.config.base_url,
+                self.config.model_id,
+                batch,
+                max_tokens=80,
+                temperature=0.2,
+                max_concurrent=batch_size,
+            )
+            for entry, desc in zip(batch, descriptions):
+                entry["preview"] = desc
+                entry["vlm_description"] = desc
+            print(f"  Described {min(i + batch_size, len(image_files))}/{len(image_files)} images")
+
+        index_path.write_text(json.dumps(index, indent=2, default=str))
+        logger.info(f"Generated VLM descriptions for {len(image_files)} images")
+
     async def query(self, question: str) -> str:
         """Phase 2: Answer a question using agentic tool-calling loop."""
         self.compactor.reset()
         tool_descs = self._build_tool_descriptions()
+
+        # Include conversation history in system prompt
+        conv_ctx = self._get_conversation_context()
         system = SYSTEM_PROMPT.format(tool_descriptions=tool_descs)
+        if conv_ctx:
+            system = f"{system}\n\n{conv_ctx}"
 
         max_iterations = 5
         iteration = 0
@@ -203,6 +254,7 @@ class Agent:
             if "ANSWER:" in response:
                 answer = response.split("ANSWER:", 1)[1].strip()
                 print(f"\nAnswer: {answer}")
+                self._add_to_conversation(question, answer)
                 self.tools.execute("note_store", {
                     "key": f"query_{int(time.time())}",
                     "content": f"Q: {question}\nA: {answer}",
@@ -215,6 +267,7 @@ class Agent:
             if not tool_call:
                 # Model didn't format correctly — treat as answer
                 print(f"\nAnswer: {response}")
+                self._add_to_conversation(question, response)
                 return response
 
             tool_name, args = tool_call
@@ -314,108 +367,126 @@ class Agent:
         )
         answer = await self._llm_call(final_prompt, max_tokens=self.config.max_answer_tokens)
         print(f"\nAnswer: {answer}")
+        self._add_to_conversation(question, answer)
         return answer
 
-    async def parallel_query(self, question: str) -> str:
-        """Enhanced query that uses parallel file reading."""
-        self.compactor.reset()
-
-        # Step 1: Read index from JSON file directly
+    def _load_index(self) -> list[dict]:
+        """Load and cache the file index."""
+        if self._index_cache is not None:
+            return self._index_cache
         json_path = self.config.data_dir / "index.json"
         if not json_path.exists():
-            await self.index()
+            return []
         try:
-            files = json.loads(json_path.read_text())
-        except (json.JSONDecodeError, TypeError, FileNotFoundError):
-            return await self.query(question)
+            self._index_cache = json.loads(json_path.read_text())
+            return self._index_cache
+        except (json.JSONDecodeError, TypeError):
+            return []
 
+    def _invalidate_index_cache(self):
+        self._index_cache = None
+
+    def _build_index_summary(self, files: list[dict]) -> str:
+        """Build a factual summary of the index for the LLM."""
+        if not files:
+            return "No files found."
+
+        # Count by type
+        type_counts: dict[str, int] = {}
+        dirs = 0
+        total_size = 0
+        for f in files:
+            ftype = f.get("type", "unknown")
+            if ftype == "dir":
+                dirs += 1
+            else:
+                type_counts[ftype] = type_counts.get(ftype, 0) + 1
+            total_size += f.get("size", 0)
+
+        # Build listing
+        lines = [f"Total: {len(files)} entries ({dirs} folders, {len(files) - dirs} files)"]
+        lines.append(f"Total size: {total_size:,} bytes")
+
+        # Type breakdown
+        if type_counts:
+            lines.append("File types:")
+            for ext, count in sorted(type_counts.items(), key=lambda x: -x[1]):
+                lines.append(f"  {ext}: {count}")
+
+        # File list
+        lines.append("\nFiles:")
+        for f in files:
+            if f.get("type") == "dir":
+                continue
+            preview = ""
+            # Prefer VLM description for images, then preview
+            if f.get("vlm_description"):
+                preview = f" - {f['vlm_description'][:80]}"
+            elif f.get("preview"):
+                preview = f" - {f['preview'][:50]}"
+            lines.append(f"  {f['name']} ({f.get('type', '?')}, {f.get('size', '?')}b){preview}")
+
+        return "\n".join(lines)
+
+    def _add_to_conversation(self, question: str, answer: str):
+        """Store Q&A pair for follow-up context."""
+        self._conversation.append({"q": question, "a": answer})
+        # Keep only last 3 exchanges
+        if len(self._conversation) > 3:
+            self._conversation = self._conversation[-3:]
+
+    def _get_conversation_context(self) -> str:
+        """Build conversation history string."""
+        if not self._conversation:
+            return ""
+        lines = ["Previous conversation:"]
+        for ex in self._conversation:
+            lines.append(f"User: {ex['q']}")
+            lines.append(f"Assistant: {ex['a']}")
+        return "\n".join(lines)
+
+    async def parallel_query(self, question: str) -> str:
+        """Enhanced query: answers from index data when possible, falls back to tool loop."""
+        files = self._load_index()
+        if not files:
+            await self.index()
+            files = self._load_index()
         if not files:
             return "No files found in the target directory. Try running /index first."
 
-        # Step 2: Build a compact file listing and let the model answer
-        # from the index first — many questions (counts, listings, types)
-        # can be answered without reading file contents
-        file_list = "\n".join(
-            f"- {f['name']} (type: {f.get('type', '?')}, size: {f.get('size', '?')}b"
-            + (f", preview: {f['preview'][:60]}" if f.get("preview") else "")
-            + ")"
-            for f in files[:80]
-        )
-        total = len(files)
+        # Build a factual index summary (computed, not LLM-guessed)
+        index_summary = self._build_index_summary(files)
+        conversation_ctx = self._get_conversation_context()
 
-        index_prompt = (
-            f"The user's directory contains {total} files/folders:\n{file_list}\n\n"
-            f"Question: {question}\n\n"
-            f"If you can answer from this file list, write ANSWER: followed by your answer.\n"
-            f"If you need to read file contents, write NEED_FILES: followed by up to 8 filenames, one per line."
+        # Ask the LLM to answer using the pre-computed summary
+        prompt_parts = []
+        if conversation_ctx:
+            prompt_parts.append(conversation_ctx)
+        prompt_parts.append(f"Here is a factual summary of the user's directory:\n{index_summary}")
+        prompt_parts.append(f"\nUser question: {question}")
+        prompt_parts.append(
+            "\nIf you can answer from the summary above, write your answer directly."
+            "\nIf you need to read file contents to answer, write NEED_FILES: followed by filenames."
         )
-        response = await self._llm_call(index_prompt, max_tokens=300)
 
-        # If model can answer from index alone, return directly
-        if "ANSWER:" in response:
-            answer = response.split("ANSWER:", 1)[1].strip()
-            print(f"\nAnswer: {answer}")
-            self.tools.execute("note_store", {
-                "key": f"pquery_{int(time.time())}",
-                "content": f"Q: {question}\nA: {answer}",
-                "category": "query_history",
-            })
+        response = await self._llm_call("\n".join(prompt_parts), max_tokens=400)
+
+        # If the model needs file contents, fall back to the agentic tool loop
+        if "NEED_FILES:" in response:
+            answer = await self.query(question)
+            self._add_to_conversation(question, answer)
             return answer
 
-        # Step 3: Model needs file contents — extract filenames
-        if "NEED_FILES:" in response:
-            names_text = response.split("NEED_FILES:", 1)[1].strip()
-        else:
-            names_text = response  # best effort
+        # Model answered directly — clean it up
+        answer = response.strip()
+        if "ANSWER:" in answer:
+            answer = answer.split("ANSWER:", 1)[1].strip()
 
-        selected_names = [
-            line.strip().lstrip("- ").strip()
-            for line in names_text.splitlines()
-            if line.strip() and not line.strip().startswith("#")
-        ]
-
-        # Step 4: Read selected files
-        file_contents = []
-        for name in selected_names[:8]:
-            matching = [f for f in files if f["name"] == name or name in f.get("path", "")]
-            if matching:
-                path = matching[0]["path"]
-                read_result = self.tools.execute("file_read", {"path": path, "limit": 100})
-                if read_result["success"]:
-                    file_contents.append({"path": path, "content": read_result["output"]})
-
-        if not file_contents:
-            # No files matched — fall back to agentic loop
-            return await self.query(question)
-
-        # Step 5: Parallel LLM extraction
-        print(f"\nSearching {len(file_contents)} files in parallel...")
-        findings = await parallel_tool_reads(
-            self.config.base_url,
-            self.config.model_id,
-            file_contents,
-            question,
-            max_concurrent=self.config.parallel_workers,
-        )
-
-        if not findings:
-            return await self.query(question)
-
-        # Step 6: Synthesize
-        findings_text = "\n\n".join(
-            f"From {f['path']}:\n{f['finding']}" for f in findings
-        )
-        synth_prompt = (
-            f"Based on these findings from the user's files:\n{findings_text}\n\n"
-            f"Answer concisely: {question}\n"
-            f"Cite file paths."
-        )
-        answer = await self._llm_call(synth_prompt, max_tokens=self.config.max_answer_tokens)
         print(f"\nAnswer: {answer}")
-
+        self._add_to_conversation(question, answer)
         self.tools.execute("note_store", {
             "key": f"pquery_{int(time.time())}",
-            "content": f"Q: {question}\nA: {answer}\nFiles: {[f['path'] for f in findings]}",
+            "content": f"Q: {question}\nA: {answer}",
             "category": "query_history",
         })
         return answer

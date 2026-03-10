@@ -54,6 +54,13 @@ def main():
     i.add_argument("--backend", choices=backend_choices, default=None, help=backend_help)
     i.add_argument("--verbose", "-v", action="store_true")
 
+    # TUI mode
+    t = sub.add_parser("tui", help="Interactive TUI with prompt_toolkit")
+    t.add_argument("--target", default=str(Path.home() / "Desktop"), help="Directory to index")
+    t.add_argument("--backend", choices=backend_choices, default=None, help=backend_help)
+    t.add_argument("--port", type=int, default=8472, help="Reserved port (unused)")
+    t.add_argument("--verbose", "-v", action="store_true")
+
     # Server command
     s = sub.add_parser("server", help="Start model server only")
     s.add_argument("--port", type=int, default=8080)
@@ -98,6 +105,10 @@ def main():
 
     elif args.command == "interactive":
         asyncio.run(interactive_mode(config))
+
+    elif args.command == "tui":
+        from tui import run_tui
+        run_tui(target=args.target, backend=backend)
 
 
 async def interactive_mode(config: AgentConfig):

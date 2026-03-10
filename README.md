@@ -1,64 +1,46 @@
-# 📄 LintIngest
+# LintIngest
 
-**Unified locally-run agentic document retrieval and answering system.**
+**Lightweight, locally-run agentic document retrieval.**
 
-Ingest any document, ask any question. LintIngest reads your files, builds a knowledge base, and answers questions using recursive deep research — all running locally on your hardware.
+Index a directory, ask questions about its contents. LintIngest builds a file map and answers using recursive tool-calling with a small local model — all on your hardware, no API keys, no cloud.
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Docker](https://img.shields.io/badge/docker-ready-blue)
 
-## What It Does
-
-1. **Ingest** — Drop in PDFs, DOCX, TXT, MD, HTML, images, spreadsheets. LintIngest parses, chunks, and embeds them.
-2. **Retrieve** — Semantic search over your document corpus with hybrid retrieval (vector + BM25).
-3. **Answer** — A recursive deep research agent reads relevant chunks, identifies gaps, fetches more context, and synthesizes a final answer.
-
-No API keys. No cloud. Everything runs on your machine.
-
-## Architecture
+## How It Works
 
 ```
-Documents → Parser → Chunker → Embeddings → Vector Store (ChromaDB)
-                                                    ↓
-                                    WebUI → Agent (Qwen3.5) → Answer
-                                              ↑         ↓
-                                              ← Recursive Retrieval ←
+Target Dir (~/Desktop)
+        |
+   [Indexing Pass]  ← Agent maps all files, builds index.json
+        |
+   [Query Pass]     ← User asks question
+        |
+   4x parallel model workers
+        |
+   Tool calls: glob_search, content_search, file_read, note_store
+        |
+   Compaction: summarize + trim context after each retrieval cycle
+        |
+   Final answer with citations
 ```
 
-The agent uses a **deep research loop**:
-1. Receives your question
-2. Retrieves relevant chunks
-3. Evaluates if it has enough context
-4. If not → reformulates query → retrieves again
-5. Repeats until confident (max depth configurable)
-6. Synthesizes final answer with citations
+1. **Index** — Walks a target directory, records file metadata and previews into `data/index.json`
+2. **Query** — Dispatches up to 4 parallel file reads, compacts results, synthesizes an answer with citations
+3. **Interactive** — REPL mode for continuous Q&A over your indexed files
 
-## Models
+## Model Backends
 
-| Component | Default Model | Alternatives |
-|-----------|--------------|--------------|
-| **Reasoning** | Qwen3.5-7B | Qwen3.5-2B (light), Qwen3.5-9B (heavy) |
-| **Embeddings** | Qwen3-Embedding-0.6B | Any sentence-transformers model |
-| **OCR** | (planned) | Qwen-VL, GOT-OCR |
+LintIngest auto-detects your platform and picks the right backend:
 
-All models run locally via [Ollama](https://ollama.com) or [vLLM](https://github.com/vllm-project/vllm). Fully configurable in `config.yaml`.
+| Backend | Platform | Model | How it runs |
+|---------|----------|-------|-------------|
+| **MLX** | macOS Apple Silicon | `Qwen3.5-0.8B-MLX-8bit` | `mlx_lm.server` |
+| **llama.cpp** | Windows / Linux / any | `Qwen3.5-0.8B-GGUF` (Q4_K_M) | `llama-server` |
+
+Both expose the same OpenAI-compatible API on `localhost:8080`. The agent code is backend-agnostic.
 
 ## Quick Start
-
-### Docker (Recommended)
-
-```bash
-git clone https://github.com/lintware/lintingest.git
-cd lintingest
-cp config.example.yaml config.yaml  # edit model settings
-
-docker compose up -d
-```
-
-Open `http://localhost:7600` — done.
-
-### Local Install
 
 ```bash
 git clone https://github.com/lintware/lintingest.git
@@ -66,149 +48,87 @@ cd lintingest
 
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
-# Start Ollama with your model
-ollama pull qwen3.5:7b
-
-# Run
-python -m lintingest serve
 ```
 
-## Usage
-
-### WebUI
-
-Navigate to `http://localhost:7600`. Drag and drop documents, ask questions.
-
-### CLI
+### macOS (Apple Silicon) — uses MLX automatically
 
 ```bash
-# Ingest documents
-lintingest ingest ./documents/
+python cli.py interactive
+```
+
+### Windows / Linux — requires llama.cpp
+
+Install [llama.cpp](https://github.com/ggerganov/llama.cpp#build) and ensure `llama-server` is on your PATH. The GGUF model is downloaded automatically on first run.
+
+```bash
+python cli.py interactive
+```
+
+### Manual backend override
+
+```bash
+python cli.py interactive --backend llamacpp   # force llama.cpp on macOS
+python cli.py interactive --backend mlx        # force MLX (Apple Silicon only)
+```
+
+## CLI Usage
+
+```bash
+# Index a directory
+python cli.py index --target ~/Documents
 
 # Ask a question
-lintingest ask "What are the key findings from the Q3 report?"
+python cli.py query "What files mention API keys?"
 
-# Deep research mode (recursive, thorough)
-lintingest ask --deep "Compare the financial performance across all quarterly reports"
+# Parallel query (reads multiple files at once)
+python cli.py query -p "Summarize the project structure"
+
+# Interactive mode (auto-indexes on first run)
+python cli.py interactive --target ~/Desktop
+
+# Start model server only
+python cli.py server --port 8080
 ```
 
-### API
+### Interactive commands
 
-```bash
-# Ingest
-curl -X POST http://localhost:7600/api/ingest \
-  -F "files=@report.pdf"
-
-# Ask
-curl -X POST http://localhost:7600/api/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "Summarize the main points", "deep": true}'
-
-# List documents
-curl http://localhost:7600/api/documents
-```
-
-## Configuration
-
-```yaml
-# config.yaml
-model:
-  provider: ollama          # ollama | vllm | llamacpp
-  name: qwen3.5:7b          # model name
-  base_url: http://localhost:11434
-
-embeddings:
-  model: Qwen/Qwen3-Embedding-0.6B
-  device: auto               # cpu | cuda | mps
-
-retrieval:
-  chunk_size: 512
-  chunk_overlap: 64
-  top_k: 10
-  hybrid: true               # vector + BM25
-
-agent:
-  max_depth: 5               # recursive retrieval depth
-  confidence_threshold: 0.7  # stop when confident enough
-  thinking: true             # show reasoning steps
-
-ocr:
-  enabled: false             # enable for scanned PDFs / images
-  model: null                # coming soon
-
-server:
-  host: 0.0.0.0
-  port: 7600
-
-storage:
-  vector_db: chromadb
-  persist_dir: ./data
-```
-
-## Supported Formats
-
-| Format | Status |
-|--------|--------|
-| PDF | ✅ |
-| DOCX / DOC | ✅ |
-| TXT / MD | ✅ |
-| HTML | ✅ |
-| CSV / XLSX | ✅ |
-| Images (OCR) | 🔜 Planned |
-| Audio (transcription) | 🔜 Planned |
-
-## Hardware Requirements
-
-| Model | VRAM | RAM | Notes |
-|-------|------|-----|-------|
-| Qwen3.5-2B | 2 GB | 4 GB | Fast, good for simple docs |
-| Qwen3.5-7B | 5 GB | 8 GB | Recommended default |
-| Qwen3.5-9B | 7 GB | 12 GB | Best quality |
-
-Runs on CPU too (slower). Apple Silicon (MPS) and NVIDIA CUDA supported.
+- `/index` — Re-index the target directory
+- `/parallel` — Toggle parallel file reading
+- `/quit` — Exit
 
 ## Project Structure
 
 ```
 lintingest/
-├── lintingest/
-│   ├── __init__.py
-│   ├── server.py          # FastAPI server + WebUI
-│   ├── agent.py           # Deep research agent
-│   ├── retriever.py       # Hybrid retrieval (vector + BM25)
-│   ├── ingest.py          # Document parsing & chunking
-│   ├── embeddings.py      # Embedding model wrapper
-│   ├── ocr.py             # OCR pipeline (planned)
-│   └── config.py          # Configuration loader
-├── webui/
-│   ├── index.html         # Single-page app
-│   ├── style.css
-│   └── app.js
-├── docker-compose.yaml
-├── Dockerfile
-├── config.example.yaml
+├── agent/                  # Agent implementation
+│   ├── core.py            # Main agent loop (indexing + query)
+│   ├── tools.py           # Tool definitions and execution
+│   ├── compaction.py      # Context compaction logic
+│   ├── parallel.py        # Parallel worker dispatch
+│   ├── index.py           # Directory indexing logic
+│   └── config.py          # Agent configuration
+├── data/                   # Agent working directory (read/write)
+│   ├── index.json         # File index
+│   ├── notes/             # Agent notes
+│   └── cache/             # Context cache
+├── server/                 # Model server management
+│   ├── backend.py         # Auto-detect platform, unified start/stop
+│   ├── mlx_runner.py      # MLX server (macOS Apple Silicon)
+│   └── llamacpp_runner.py # llama.cpp server (Windows/Linux)
+├── cli.py                  # CLI entry point
 ├── requirements.txt
+├── CLAUDE.md              # Development instructions
+├── LICENSE                # MIT
 └── README.md
 ```
 
-## Roadmap
+## Hardware
 
-- [x] Document ingestion (PDF, DOCX, TXT, MD, HTML, CSV)
-- [x] Hybrid retrieval (vector + BM25)
-- [x] Recursive deep research agent
-- [x] Built-in WebUI
-- [x] Docker support
-- [ ] OCR pipeline (Qwen-VL / GOT-OCR)
-- [ ] Audio transcription & ingestion
-- [ ] Multi-collection support
-- [ ] Conversation memory
-- [ ] Export answers as reports
-- [ ] Plugin system for custom parsers
+Qwen3.5-0.8B is small — runs comfortably on any modern machine:
 
-## Contributing
-
-PRs welcome. Keep it simple, keep it local.
+- **Apple Silicon**: ~1 GB memory, ~244 tok/s aggregate with 4 parallel workers
+- **CPU (any platform)**: Works fine, slower inference
+- **GPU (CUDA/Vulkan via llama.cpp)**: Fastest on non-Apple hardware
 
 ## License
 

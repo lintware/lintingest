@@ -46,6 +46,58 @@ async def parallel_completions(
         return await asyncio.gather(*tasks)
 
 
+async def parallel_vlm_descriptions(
+    base_url: str,
+    model_id: str,
+    image_entries: list[dict],
+    max_tokens: int = 80,
+    temperature: float = 0.2,
+    max_concurrent: int = 2,
+) -> list[str]:
+    """Describe multiple images in parallel via VLM.
+
+    image_entries: list of {"path": str, "name": str}
+    Returns: list of description strings in same order.
+    """
+    semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def _describe(client: httpx.AsyncClient, entry: dict) -> str:
+        async with semaphore:
+            messages = [{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Describe this image in one sentence. Be specific about what you see."},
+                    {"type": "image_url", "image_url": {"url": entry["path"]}},
+                ],
+            }]
+            payload = {
+                "model": model_id,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            }
+            try:
+                resp = await client.post(
+                    f"{base_url}/chat/completions",
+                    json=payload,
+                    timeout=60.0,
+                )
+                if resp.status_code != 200:
+                    return f"image file ({entry['name']})"
+                data = resp.json()
+                content = data["choices"][0]["message"]["content"]
+                if "<think>" in content:
+                    parts = content.split("</think>")
+                    content = parts[-1].strip() if len(parts) > 1 else content
+                return content.strip()
+            except Exception as e:
+                return f"image file ({entry['name']})"
+
+    async with httpx.AsyncClient() as client:
+        tasks = [_describe(client, e) for e in image_entries]
+        return await asyncio.gather(*tasks)
+
+
 async def parallel_tool_reads(
     base_url: str,
     model_id: str,
