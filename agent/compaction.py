@@ -23,7 +23,7 @@ class ContextCompactor:
 
     def add_result(self, tool_name: str, output: str, llm_summary: str | None = None):
         """Add a tool result, compacting if needed."""
-        summary = llm_summary if llm_summary else self._truncate(output, 400)
+        summary = llm_summary if llm_summary else self._truncate(output, 800)
         self.results.append(CompactedResult(tool_name=tool_name, summary=summary))
 
         if len(self.results) > self.max_history:

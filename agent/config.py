@@ -7,7 +7,7 @@ class AgentConfig:
     # Model
     model_id: str = "mlx-community/Qwen3.5-0.8B-MLX-8bit"
     base_url: str = "http://127.0.0.1:8080/v1"
-    max_tokens: int = 256
+    max_tokens: int = 384
     temperature: float = 0.3
     parallel_workers: int = 4
 
@@ -28,13 +28,14 @@ class AgentConfig:
     ])
 
     # Compaction
-    max_context_tokens: int = 1500
-    max_history_results: int = 3
+    max_context_tokens: int = 10000
+    max_history_results: int = 5
     max_answer_tokens: int = 500
 
     # Indexing
     max_depth: int = 10
     preview_chars: int = 200
+    skip_summaries: bool = False
 
     def __post_init__(self):
         self.data_dir.mkdir(parents=True, exist_ok=True)

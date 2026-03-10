@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import re
 import time
 from pathlib import Path
 
@@ -15,13 +16,19 @@ from agent.parallel import parallel_completions, parallel_tool_reads, parallel_v
 
 logger = logging.getLogger("lintingest.core")
 
-SYSTEM_PROMPT = """You search files and answer questions. You have these tools:
+SYSTEM_PROMPT = """You are a file search assistant. You MUST search files before answering.
+NEVER answer from your own knowledge. ONLY answer from file contents.
+
+Steps:
+1. Use content_search to grep for keywords from the question
+2. Use file_read to read matching files
+3. Write ANSWER: with the exact information you found
+
+Tools:
 {tool_descriptions}
 
-To use a tool, respond with JSON only:
-{{"tool": "tool_name", "args": {{"key": "value"}}}}
-
-When you have enough info, respond with ANSWER: followed by your answer in plain language."""
+Respond with JSON only: {{"tool": "tool_name", "args": {{"key": "value"}}}}
+When done: ANSWER: your answer (quote the exact text you found)"""
 
 SUMMARIZE_PROMPT = """Summarize this tool result in 2-3 short sentences, keeping only information relevant to the question.
 Question: {question}
@@ -99,15 +106,15 @@ class Agent:
 
         if result["success"]:
             # Parse count from XML: <result><indexed>N</indexed></result>
-            import re
             m = re.search(r"<indexed>(\d+)</indexed>", result["output"])
             count = int(m.group(1)) if m else 0
             print(f"Indexed {count} files in {elapsed:.1f}s")
 
-            # Generate summaries for text files in parallel
-            await self._parallel_preview_summaries()
-            # Describe images via VLM
-            await self._parallel_image_descriptions()
+            if not self.config.skip_summaries:
+                # Generate summaries for text files in parallel
+                await self._parallel_preview_summaries()
+                # Describe images via VLM
+                await self._parallel_image_descriptions()
             return {"files_indexed": count}
         else:
             print(f"Indexing failed: {result.get('error')}")
@@ -229,6 +236,39 @@ class Agent:
                 tools_called.append("read_index")
                 print(f"  [0] read_index (auto, after re-index)")
 
+        # Step 0b: Auto content_search with question keywords
+        keywords = self._extract_keywords(question)
+        if keywords:
+            search_result = self.tools.execute("content_search", {
+                "pattern": keywords,
+                "directory": str(self.config.target_dir),
+                "max_results": 10,
+            })
+            if search_result["success"] and search_result["output"].strip():
+                self.compactor.add_result("content_search", search_result["output"])
+                tools_called.append("content_search")
+                _seen_calls.add(
+                    f"content_search:{json.dumps({'pattern': keywords, 'directory': str(self.config.target_dir), 'max_results': 10}, sort_keys=True)}"
+                )
+                print(f"  [0b] content_search (auto, keywords: {keywords[:60]})")
+
+                # Step 0c: Auto file_read on top matching files
+                hit_files = re.findall(r'<hit f="([^"]+)"', search_result["output"])
+                seen_files = set()
+                for fpath in hit_files:
+                    if fpath in seen_files:
+                        continue
+                    seen_files.add(fpath)
+                    if len(seen_files) > 3:
+                        break
+                    read_result = self.tools.execute("file_read", {
+                        "path": fpath, "offset": 0, "limit": 100,
+                    })
+                    if read_result["success"]:
+                        self.compactor.add_result("file_read", read_result["output"])
+                        tools_called.append("file_read")
+                        print(f"  [0c] file_read (auto, {Path(fpath).name})")
+
         stall_count = 0  # Track consecutive blocked/duplicate calls
 
         while iteration < max_iterations:
@@ -295,6 +335,18 @@ class Agent:
                 self.compactor.add_result(
                     "system",
                     f"You already called {tool_name} with those arguments. Try a different tool or write ANSWER:",
+                )
+                continue
+
+            # Suppress note_store/note_recall during search — don't waste iterations
+            if tool_name in ("note_store", "note_recall"):
+                stall_count += 1
+                iteration -= 1
+                if stall_count >= 2:
+                    break
+                self.compactor.add_result(
+                    "system",
+                    "Do not store notes yet. Use content_search or file_read to find the answer first.",
                 )
                 continue
 
@@ -491,10 +543,35 @@ class Agent:
         })
         return answer
 
+    _STOP_WORDS = frozenset({
+        "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+        "have", "has", "had", "do", "does", "did", "will", "would", "shall",
+        "should", "may", "might", "must", "can", "could", "of", "in", "to",
+        "for", "with", "on", "at", "from", "by", "about", "as", "into",
+        "through", "during", "before", "after", "above", "below", "between",
+        "out", "off", "over", "under", "again", "further", "then", "once",
+        "and", "but", "or", "nor", "not", "so", "yet", "both", "either",
+        "neither", "each", "every", "all", "any", "few", "more", "most",
+        "other", "some", "such", "no", "only", "own", "same", "than", "too",
+        "very", "just", "because", "if", "when", "where", "how", "what",
+        "which", "who", "whom", "this", "that", "these", "those", "i", "me",
+        "my", "we", "our", "you", "your", "he", "him", "his", "she", "her",
+        "it", "its", "they", "them", "their", "there", "here", "up", "down",
+        "file", "files", "find", "tell", "show", "give", "get", "list",
+        "many", "much", "also", "like",
+    })
+
+    def _extract_keywords(self, question: str) -> str:
+        """Extract search keywords from a question. Returns regex OR pattern."""
+        words = re.findall(r"[a-zA-Z0-9_]+", question)
+        keywords = [w for w in words if w.lower() not in self._STOP_WORDS and len(w) > 1]
+        if not keywords:
+            return ""
+        return "|".join(keywords)
+
     def _parse_tool_call(self, response: str) -> tuple[str, dict] | None:
         """Try to extract a tool call from the LLM response."""
         # Look for JSON in the response
-        import re
         patterns = [
             r'\{[^{}]*"tool"\s*:\s*"[^"]+"\s*,\s*"args"\s*:\s*\{[^{}]*\}[^{}]*\}',
             r'\{[^{}]*"tool"\s*:\s*"[^"]+"\s*[^{}]*\}',
