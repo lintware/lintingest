@@ -8,6 +8,8 @@ import os
 import re
 import fnmatch
 import logging
+import subprocess
+import shlex
 from pathlib import Path
 from datetime import datetime
 from xml.sax.saxutils import escape as xml_escape
@@ -17,6 +19,14 @@ from agent.config import AgentConfig
 logger = logging.getLogger("lintingest.tools")
 
 TOOL_SCHEMAS = {
+    "shell_exec": {
+        "type": "object",
+        "properties": {
+            "command": {"type": "string", "description": "Shell command to run (e.g. ls -la, cat file.txt, find . -name '*.py' | wc -l, head -20 file.txt)"},
+            "timeout": {"type": "integer", "description": "Timeout in seconds", "default": 30},
+        },
+        "required": ["command"],
+    },
     "index_directory": {
         "type": "object",
         "properties": {
@@ -131,6 +141,97 @@ class ToolExecutor:
             return {"success": False, "error": f"Permission denied: {e}"}
         except Exception as e:
             return {"success": False, "error": f"{type(e).__name__}: {e}"}
+
+    # Commands that are never allowed (destructive / dangerous)
+    BLOCKED_COMMANDS = {
+        "rm", "rmdir", "mkfs", "dd", "shutdown", "reboot", "halt",
+        "systemctl", "launchctl", "kill", "killall", "pkill",
+        "chmod", "chown", "chgrp", "sudo", "su", "doas",
+        "curl", "wget", "ssh", "scp", "sftp", "nc", "ncat",
+        "python", "python3", "node", "ruby", "perl", "bash", "zsh", "sh",
+        "pip", "npm", "brew", "apt", "yum", "dnf",
+        "mv", "cp",  # block moves/copies to prevent overwriting source files
+        "open",  # block opening apps
+    }
+
+    def _tool_shell_exec(self, args: dict) -> str:
+        """Execute a shell command within the target directory.
+
+        Full read access to the target directory. No destructive commands.
+        No network access. No writes outside data/.
+        """
+        command = args["command"].strip()
+        timeout = min(args.get("timeout", 30), 60)  # cap at 60s
+
+        if not command:
+            return "<error>Empty command</error>"
+
+        # Block dangerous commands by checking the first token of each
+        # pipe segment and any $() or `` subshells
+        try:
+            # Check for subshell attempts
+            if "`" in command or "$(" in command:
+                return "<error>Subshell execution not allowed</error>"
+
+            # Check each pipe segment
+            segments = command.split("|")
+            for segment in segments:
+                segment = segment.strip()
+                if not segment:
+                    continue
+                # Also split on && and ;
+                for sub in re.split(r'[;&]', segment):
+                    sub = sub.strip()
+                    if not sub:
+                        continue
+                    first_token = sub.split()[0] if sub.split() else ""
+                    # Strip path prefix (e.g. /usr/bin/rm -> rm)
+                    base_cmd = os.path.basename(first_token)
+                    if base_cmd in self.BLOCKED_COMMANDS:
+                        return f"<error>Blocked command: {base_cmd}</error>"
+        except Exception:
+            return "<error>Could not parse command</error>"
+
+        # Validate working directory is target_dir
+        cwd = str(self.config.target_dir.resolve())
+
+        # Check cwd isn't in blocked paths
+        for blocked in self.config.blocked_paths:
+            if cwd.startswith(str(Path(blocked).resolve())):
+                return f"<error>Target directory is in a blocked path</error>"
+
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=cwd,
+                env={
+                    **os.environ,
+                    "PATH": "/usr/bin:/bin:/usr/local/bin",
+                    "HOME": str(Path.home()),
+                },
+            )
+            stdout = result.stdout[:4000] if result.stdout else ""
+            stderr = result.stderr[:1000] if result.stderr else ""
+
+            output_parts = []
+            if stdout:
+                output_parts.append(stdout)
+            if stderr:
+                output_parts.append(f"STDERR: {stderr}")
+            if result.returncode != 0:
+                output_parts.append(f"Exit code: {result.returncode}")
+
+            output = "\n".join(output_parts) if output_parts else "(no output)"
+            return f"<shell>{xml_escape(output)}</shell>"
+
+        except subprocess.TimeoutExpired:
+            return f"<error>Command timed out after {timeout}s</error>"
+        except Exception as e:
+            return f"<error>{type(e).__name__}: {e}</error>"
 
     def _tool_index_directory(self, args: dict) -> str:
         path = self.safe_read_path(args.get("path", str(self.config.target_dir)))

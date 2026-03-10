@@ -35,7 +35,7 @@ LintIngest auto-detects your platform and picks the right backend:
 
 | Backend | Platform | Model | How it runs |
 |---------|----------|-------|-------------|
-| **MLX** | macOS Apple Silicon | `Qwen3.5-0.8B-MLX-8bit` | `mlx_lm.server` |
+| **MLX** | macOS Apple Silicon | `Qwen3.5-0.8B-MLX-8bit` | `mlx_vlm.server` |
 | **llama.cpp** | Windows / Linux / any | `Qwen3.5-0.8B-GGUF` (Q4_K_M) | `llama-server` |
 
 Both expose the same OpenAI-compatible API on `localhost:8080`. The agent code is backend-agnostic.

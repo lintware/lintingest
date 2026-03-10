@@ -75,7 +75,7 @@ These rules are non-negotiable and must be enforced at every layer:
 - **BLOCKED PATHS:** `/etc`, `/usr`, `/System`, `/Library`, `/bin`, `/sbin`, `~/.ssh`, `~/.aws`, `~/.gnupg`, any dotfiles outside the project
 
 ### Agent Behavior
-- No shell command execution beyond read-only operations (ls, cat, file, head)
+- **Shell access:** The agent has a `shell_exec` tool for running read-only shell commands in the target directory. Destructive commands (`rm`, `mv`, `cp`, `chmod`, `sudo`, etc.) and network commands (`curl`, `wget`, `ssh`, etc.) are blocked. Scripting interpreters (`python`, `node`, `bash`, etc.) are also blocked to prevent arbitrary code execution.
 - No network access (all processing is local)
 - No git operations on external repos
 - No process spawning beyond the model server (MLX or llama.cpp)
@@ -83,7 +83,14 @@ These rules are non-negotiable and must be enforced at every layer:
 
 ## Tool Definitions
 
-The agent has access to these tools ONLY:
+The agent has access to these tools:
+
+### `shell_exec`
+- **Purpose:** Run shell commands in the target directory for flexible file inspection
+- **Input:** `{ "command": string, "timeout": number }`
+- **Output:** Command stdout/stderr
+- **Security:** Runs in target dir only. Blocked: `rm`, `mv`, `cp`, `chmod`, `sudo`, `curl`, `wget`, `ssh`, `python`, `node`, `bash`, and other destructive/network/scripting commands. No subshells (`$()`, backticks). Max 60s timeout. Stdout capped at 4KB.
+- **Use cases:** `ls -la`, `cat file.txt`, `head -50 file.py`, `find . -name '*.py' | wc -l`, `grep -r "pattern" .`, `wc -l *.txt`, `file *.pdf`, `du -sh *`, `sort`, `awk`, `sed` (read-only), `diff file1 file2`
 
 ### `index_directory`
 - **Purpose:** Walk target dir, build file index

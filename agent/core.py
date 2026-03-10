@@ -203,7 +203,7 @@ class Agent:
         if conv_ctx:
             system = f"{system}\n\n{conv_ctx}"
 
-        max_iterations = 5
+        max_iterations = 10
         iteration = 0
         tools_called = []  # Track what we've already called
         read_index_done = False  # Hard-block re-reads
