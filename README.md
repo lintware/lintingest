@@ -136,4 +136,4 @@ MIT
 
 ---
 
-Built by [Lintware](https://github.com/lintware)
+Built by [Lint Labs](https://github.com/lintware)
